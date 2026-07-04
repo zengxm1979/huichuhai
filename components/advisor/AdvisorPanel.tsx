@@ -34,7 +34,7 @@ const tierConfig: Record<PackageTierId, { label: PackageTierLabel; multiplier: n
     label: "标准型",
     multiplier: 1,
     summary: "标准型覆盖会议、晚宴、住宿、交通和物料，适合大多数经销商大会和企业活动。",
-    confirmations: ["酒店档期", "晚宴菜单", "付款与合同条款"],
+    confirmations: ["酒店档期", "晚宴菜单", "付款、取消与合同条款"],
   },
   premium: {
     label: "高配型",
@@ -65,7 +65,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
   const selectedTierConfig = tierConfig[selectedTier];
   const currentSummary =
     state.step === "budgetMismatch"
-      ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问协助压缩供应商报价。"
+      ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问基于本次询价确认资源价格和档期。"
       : selectedTierConfig.summary;
 
   function adjustService(id: string, direction: "up" | "down") {
@@ -195,7 +195,7 @@ function HeroState({ state }: { state: CustomerAdvisorState }) {
       />
       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
       <div className="absolute inset-0 flex flex-col justify-end p-6">
-        <p className="text-sm text-gold">方案内容均为示例 [MOCK]，正式报价需顾问确认</p>
+        <p className="text-sm text-gold">方案内容均为示例 [MOCK]，当前为参考范围，不承诺实时档期和最终价格</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-semibold md:text-4xl">{titles[state.step]}</h1>
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/78">
           <span>国际化场地资源</span>
@@ -312,7 +312,7 @@ function ServiceSelectionTable({
   return (
     <section className="rounded-ui border border-line bg-white p-5">
       <h2 className="text-xl font-semibold text-ink">服务项取舍</h2>
-      <p className="mt-1 text-sm text-ocean/70">点击 + / - 会调整数量、状态和右侧预算摘要。金额为预算结构估算，不是正式报价。</p>
+      <p className="mt-1 text-sm text-ocean/70">点击 + / - 会调整数量、状态和右侧预算摘要。金额为预算结构估算和参考范围，不是正式报价。</p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-sm">
           <thead>
@@ -398,7 +398,7 @@ function BudgetSidePanel({
         <div className="mt-5 h-2 rounded-full bg-white/15">
           <div className="h-2 rounded-full bg-teal transition-all" style={{ width: `${budget.coverage}%` }} />
         </div>
-        <p className="mt-2 text-xs text-white/55">预算覆盖度 {budget.coverage}% · 正式报价需顾问确认</p>
+        <p className="mt-2 text-xs text-white/55">预算覆盖度 {budget.coverage}% · 正式价格和档期需基于本次询价确认</p>
       </section>
 
       <section className="rounded-ui border border-line bg-white p-5">
@@ -429,7 +429,9 @@ function BudgetSidePanel({
             </Link>
           ))}
         </div>
-        <p className="mt-4 text-xs leading-5 text-ocean/60">预算结构仅用于方案沟通，正式报价、档期和合同条款以顾问确认为准。</p>
+        <p className="mt-4 text-xs leading-5 text-ocean/60">
+          预算结构仅用于方案沟通。正式价格、档期、付款和取消条款，必须基于本次资源询价确认。
+        </p>
       </section>
     </aside>
   );

@@ -27,6 +27,18 @@ describe("assertCustomerSafePayload", () => {
     "lead_priority",
     "risk_flags",
     "recommended_reply",
+    "supplierName",
+    "internalNegotiationNote",
+    "internalRiskNote",
+    "conflictNote",
+    "supplierResponseSummary",
+    "operatorFollowupNote",
+    "supplier_name",
+    "internal_negotiation_note",
+    "internal_risk_note",
+    "conflict_note",
+    "supplier_response_summary",
+    "operator_followup_note",
   ])("blocks internal field %s from customer payloads", (fieldName) => {
     expect(() =>
       assertCustomerSafePayload({

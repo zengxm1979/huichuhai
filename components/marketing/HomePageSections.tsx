@@ -86,7 +86,7 @@ export function HomePageSections() {
             <aside className="rounded-ui border border-line bg-white p-5">
               <div className="grid gap-5 text-sm text-ocean">
                 <TrustLine icon={<BadgeCheck size={18} />} title="实地考察支持" body="资源待确认，先以 MOCK 内容演示。" />
-                <TrustLine icon={<Building2 size={18} />} title="独家资源与档期" body="优先锁定热门场地与档期。" />
+                <TrustLine icon={<Building2 size={18} />} title="合作资源与询档" body="协助向热门场地确认本次档期与条件。" />
                 <TrustLine icon={<ShieldCheck size={18} />} title="中文合同与对接" body="全程中文沟通，便于客户决策。" />
               </div>
             </aside>
@@ -103,7 +103,7 @@ export function HomePageSections() {
                 <p className="text-sm font-semibold tracking-[0.2em] text-gold">AI ADVISOR</p>
                 <h2 className="mt-2 text-3xl font-semibold">AI 办会顾问</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-                  为您快速生成办会方案、服务项和预算结构。AI 仅用于初步梳理，正式报价由顾问确认。
+                  为您快速生成办会方案、服务项和预算结构。AI 仅用于初步梳理，正式价格、档期、付款和取消条款需基于本次询价确认。
                 </p>
               </div>
             </div>
@@ -170,7 +170,9 @@ export function HomePageSections() {
           </div>
           <div className="rounded-ui bg-white p-6">
             <p className="text-xl font-semibold">准备好在东南亚办一场成功会议？</p>
-            <p className="mt-3 text-sm leading-7 text-ocean/75">先提交基础需求，顾问会确认正式报价、档期和合同条款。</p>
+            <p className="mt-3 text-sm leading-7 text-ocean/75">
+              先提交基础需求，顾问会基于本次询价确认正式价格、档期、付款和取消条款。
+            </p>
             <div className="mt-6 grid gap-3">
               <Link className="rounded-ui bg-gold px-5 py-3 text-center font-semibold text-ink" href="/inquiry">
                 免费提交办会需求

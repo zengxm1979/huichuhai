@@ -14,13 +14,13 @@ export default function InquirySuccessPage() {
             <CheckCircle2 className="text-teal" size={48} />
             <h1 className="mt-5 text-3xl font-semibold text-ink">需求已收到</h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-ocean/75">
-              顾问会进一步确认正式报价、场地档期和合同条款。当前为第一阶段演示流程，未接入真实数据库或通知服务。
+              顾问会进一步基于本次询价确认正式价格、场地档期、付款和取消条款。当前为第一阶段演示流程，未接入真实数据库或通知服务。
             </p>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               <NextStep icon={<ClipboardList size={22} />} title="核对需求" body="确认公司、联系人、活动时间、人数与城市。" />
               <NextStep icon={<CalendarClock size={22} />} title="确认档期" body="根据场地和酒店资源核对可用日期。" />
-              <NextStep icon={<FileCheck2 size={22} />} title="正式报价" body="整理报价、未包含项和合同条款。" />
+              <NextStep icon={<FileCheck2 size={22} />} title="本次询价确认" body="整理本次价格、未包含项、付款和取消条款。" />
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -41,7 +41,7 @@ export default function InquirySuccessPage() {
               <SummaryItem label="地点" value="吉隆坡 [MOCK]" />
               <SummaryItem label="人数" value="120 人 [MOCK]" />
               <SummaryItem label="预算" value="¥80 - 100 万 [MOCK]" />
-              <SummaryItem label="待确认" value="正式报价、档期、合同条款" />
+              <SummaryItem label="待确认" value="本次价格、档期、付款和取消条款" />
             </dl>
           </aside>
         </section>

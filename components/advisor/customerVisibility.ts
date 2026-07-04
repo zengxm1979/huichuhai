@@ -21,6 +21,18 @@ const FORBIDDEN_CUSTOMER_KEYS = [
   "recommendedReply",
   "operator_notes",
   "operatorNotes",
+  "supplier_name",
+  "supplierName",
+  "internal_negotiation_note",
+  "internalNegotiationNote",
+  "internal_risk_note",
+  "internalRiskNote",
+  "conflict_note",
+  "conflictNote",
+  "supplier_response_summary",
+  "supplierResponseSummary",
+  "operator_followup_note",
+  "operatorFollowupNote",
 ] as const;
 
 export function assertCustomerSafePayload(payload: unknown): void {

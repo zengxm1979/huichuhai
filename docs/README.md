@@ -17,6 +17,18 @@
   - 当前选定方向为“方案配置器”：客户侧可选择方案包、调整服务项、理解预算结构；运营侧可生成给 Chris 的结构化摘要。
   - 图片稿只作为结构与视觉气质参考，最终文案、价格和真实数据以规格文档和 Chris 确认信息为准。
 
+- `design/high-fidelity/ai-advisor-state-1-initial-consultation.png`
+  - AI 顾问初始咨询状态。
+
+- `design/high-fidelity/ai-advisor-state-2-plan-configuration.png`
+  - AI 顾问方案配置状态。
+
+- `design/high-fidelity/ai-advisor-state-3-budget-mismatch.png`
+  - AI 顾问预算不匹配与调整建议状态。
+
+- `design/high-fidelity/ai-advisor-state-4-submit-to-advisor.png`
+  - AI 顾问提交真人顾问确认状态。
+
 ## 文档管理原则
 
 - 原始输入文档保存在 `docs/product/source/`，尽量不直接改动。

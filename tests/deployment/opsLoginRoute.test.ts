@@ -29,7 +29,8 @@ describe("ops login route", () => {
 
     const html = await response.text();
     expect(html).toContain('window.location.replace("/ops/content-candidates")');
-    expect(html).toContain('url=/ops/content-candidates');
+    expect(html).toContain("setTimeout");
+    expect(html).toContain('content="1;url=/ops/content-candidates"');
 
     const setCookie = response.headers.get("set-cookie") ?? "";
     expect(setCookie).toContain(`${OPS_REVIEW_SESSION_COOKIE}=`);

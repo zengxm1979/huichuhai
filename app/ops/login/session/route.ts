@@ -44,12 +44,12 @@ function createLoginCompletionHtml(next: string) {
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow" />
-    <meta http-equiv="refresh" content="0;url=${escapedNext}" />
+    <meta http-equiv="refresh" content="1;url=${escapedNext}" />
     <title>会出海内部运营入口</title>
   </head>
   <body>
     <p>正在进入内部运营预览...</p>
-    <script>window.location.replace(${nextJson});</script>
+    <script>setTimeout(function () { window.location.replace(${nextJson}); }, 250);</script>
   </body>
 </html>`;
 }

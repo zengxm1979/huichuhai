@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="bg-ink text-white">
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <BrandLogo className="h-12 w-[164px]" tone="light" />
+          <BrandLogo className="h-14 w-28 object-contain" tone="light" />
           <p className="mt-3 max-w-md text-sm leading-7 text-white/65">
             面向中国企业出海办会的本地服务平台。当前内容含 MOCK 信息，正式价格、场地和联系方式以上线前确认为准。
           </p>

@@ -173,7 +173,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
         <div className="mx-auto max-w-7xl px-5 py-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link className="flex items-center gap-3" href="/">
-              <BrandLogo className="h-12 w-[164px]" priority tone="light" />
+              <BrandLogo className="h-14 w-28 object-contain" priority tone="light" />
             </Link>
             <div className="flex flex-wrap gap-2 rounded-ui bg-white/8 p-1">
               {tabs.map((tab) => (

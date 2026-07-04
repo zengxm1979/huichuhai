@@ -1,10 +1,15 @@
 # HCH brand assets
 
-Phase-1 interim assets for the approved HCH brand direction.
+These runtime assets are copied verbatim from the approved interim brand source:
 
-- Main mark: `HCH`
-- Chinese lockup: `会出海`
-- Main color: deep ocean blue
-- Accent: low-saturation teal
+- `docs/design/brand-approved/hch-logo-lockup-approved.png`
+- `docs/design/brand-approved/hch-logo-lockup-reverse-approved.png`
+- `docs/design/brand-approved/hch-app-icon-approved.png`
 
-These SVGs are implementation assets for the MVP. Replace the same filenames after the final vector refinement is delivered.
+Rules:
+
+- Do not redesign, redraw, simplify, or reinterpret the logo.
+- Do not replace the approved HCH structure with typed letters or decorative strokes.
+- Do not generate new temporary logo variants.
+
+The old hand-drawn SVG interim assets have been removed from the runtime path.

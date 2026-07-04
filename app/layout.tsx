@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   description:
     "帮中国企业在东南亚，把一场会办得更省心。首站马来西亚，提供精选场地、中文沟通和本地执行支持。",
   icons: {
-    icon: "/brand/hch-app-icon.svg",
-    apple: "/brand/hch-app-icon.svg",
+    icon: "/brand/hch-app-icon-approved.png",
+    apple: "/brand/hch-app-icon-approved.png",
   },
 };
 

@@ -18,7 +18,7 @@ export function HomePageSections() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/20" />
         <div className="relative mx-auto flex min-h-[620px] max-w-7xl flex-col justify-center px-5 py-20">
-          <BrandLogo className="h-12 w-[164px]" priority tone="light" />
+          <BrandLogo className="h-16 w-32 object-contain" priority tone="light" />
           <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
             帮中国企业在东南亚，把一场会办得更省心
           </h1>

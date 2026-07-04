@@ -8,7 +8,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-20 border-b border-white/10 bg-ink text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
         <Link className="flex items-center gap-3" href="/">
-          <BrandLogo className="h-12 w-[164px]" priority tone="light" />
+          <BrandLogo className="h-14 w-28 object-contain" priority tone="light" />
         </Link>
         <nav className="hidden items-center gap-7 text-sm text-white/80 md:flex">
           <Link href="/">首页</Link>

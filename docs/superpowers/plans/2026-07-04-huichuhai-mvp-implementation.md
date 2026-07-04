@@ -15,8 +15,11 @@
 - Product spec: `docs/superpowers/specs/2026-07-04-huichuhai-platform-design.md`
 - Field matrix: `docs/product/customer-internal-field-matrix.md`
 - Original PRD: `docs/product/source/会出海-OutboundMICE-产品需求文档-v1.0.docx`
+- Homepage visual reference: `docs/design/high-fidelity/homepage-final-desktop-v1.png`
 - Selected AI advisor visual direction: `docs/design/high-fidelity/ai-advisor-plan-configurator-v1.png`
 - AI advisor state mocks: `docs/design/high-fidelity/ai-advisor-state-*.png`
+- AI advisor mobile / mini program visual reference: `docs/design/high-fidelity/ai-advisor-mobile-miniapp-v1.png`
+- Operator lead dashboard visual reference: `docs/design/high-fidelity/operator-leads-dashboard-v1.png`
 
 ## Planned File Structure
 
@@ -1823,13 +1826,13 @@ git commit -m "docs: add development handoff notes"
 
 ---
 
-## High-Fidelity UI Follow-Up
+## High-Fidelity UI References
 
-Before or during Task 3, run one more Product Design pass for:
+Use these high-fidelity references during implementation:
 
-- Homepage final desktop and mobile high-fidelity UI.
-- AI advisor mobile / mini program adaptation.
-- Operator lead view high-fidelity UI.
+- `docs/design/high-fidelity/homepage-final-desktop-v1.png`
+- `docs/design/high-fidelity/ai-advisor-mobile-miniapp-v1.png`
+- `docs/design/high-fidelity/operator-leads-dashboard-v1.png`
 
 The current AI advisor images are sufficient for state coverage, but generated image text is not source of truth. Implementation must use the names, labels, field boundaries, and MOCK rules from the product documents.
 

@@ -37,6 +37,18 @@
 - `design/high-fidelity/ai-advisor-state-4-submit-to-advisor.png`
   - AI 顾问提交真人顾问确认状态。
 
+- `design/high-fidelity/homepage-final-desktop-v1.png`
+  - 独立站首页最终版高保真参考。
+  - 用于确认首屏品牌表达、服务场景、精选场地、AI 顾问入口、会议物料和 FAQ/GEO 入口。
+
+- `design/high-fidelity/ai-advisor-mobile-miniapp-v1.png`
+  - AI 顾问移动端 / 微信小程序适配参考。
+  - 用于确认分步配置、移动端预算底栏、服务项调整和客户可见信息边界。
+
+- `design/high-fidelity/operator-leads-dashboard-v1.png`
+  - Chris / 运营线索视图高保真参考。
+  - 内部运营视图，可展示 AI 判断、真实性、意向、风险、优先级和建议跟进动作，不向客户展示。
+
 ## 文档管理原则
 
 - 原始输入文档保存在 `docs/product/source/`，尽量不直接改动。

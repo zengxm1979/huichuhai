@@ -374,13 +374,23 @@ AI 顾问面板高保真选定方向：方案配置器。
 
 参考视觉稿：
 
+- `docs/design/high-fidelity/homepage-final-desktop-v1.png`
 - `docs/design/high-fidelity/ai-advisor-plan-configurator-v1.png`
 - `docs/design/high-fidelity/ai-advisor-state-1-initial-consultation.png`
 - `docs/design/high-fidelity/ai-advisor-state-2-plan-configuration.png`
 - `docs/design/high-fidelity/ai-advisor-state-3-budget-mismatch.png`
 - `docs/design/high-fidelity/ai-advisor-state-4-submit-to-advisor.png`
+- `docs/design/high-fidelity/ai-advisor-mobile-miniapp-v1.png`
+- `docs/design/high-fidelity/operator-leads-dashboard-v1.png`
 
 这些图片是结构与视觉气质参考，生成图中的具体中文、品牌字样、联系人、公司名称、价格、预算、场地和日期信息不作为最终文案或真实数据。最终 UI 必须以本文档中的产品规则、字段和 MOCK 标记规则为准。
+
+高保真补充稿说明：
+
+- 首页最终版用于确认独立站整体气质、首屏品牌表达、服务场景、精选场地、AI 顾问入口、会议物料支持和 FAQ/GEO 入口。
+- AI 顾问移动端 / 小程序稿用于确认后续小程序的分步配置体验：需求、方案、预算、提交；移动端不照搬桌面三栏结构。
+- 运营线索视图是 Chris / 运营内部视图，可以展示真实性、意向、风险、优先级和推荐跟进动作，但必须与客户侧界面和 API 严格隔离。
+- 图片中的生成文字若与本文档冲突，以本文档为准。方案包命名统一为“经济型 / 标准型 / 高配型”。
 
 选定原因：
 

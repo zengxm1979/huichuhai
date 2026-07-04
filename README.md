@@ -12,6 +12,9 @@
 - MVP 实现计划：`docs/superpowers/plans/2026-07-04-huichuhai-mvp-implementation.md`
 - AI 顾问面板高保真结构参考：`docs/design/high-fidelity/ai-advisor-plan-configurator-v1.png`
 - AI 顾问面板 4 个关键状态稿：`docs/design/high-fidelity/ai-advisor-state-*.png`
+- 首页最终版高保真参考：`docs/design/high-fidelity/homepage-final-desktop-v1.png`
+- AI 顾问移动端 / 小程序适配参考：`docs/design/high-fidelity/ai-advisor-mobile-miniapp-v1.png`
+- 运营线索视图高保真参考：`docs/design/high-fidelity/operator-leads-dashboard-v1.png`
 - 文档说明：`docs/README.md`
 
 ## 当前关键结论

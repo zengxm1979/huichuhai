@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ResourceTable } from "@/components/ops/ResourceTable";
+import { useOpsResourcePreviewStore } from "@/lib/resources/useOpsResourcePreviewStore";
 import type { ResourceMaster, ResourceType } from "@/lib/resources/types";
 
 const resourceTypes: Array<{ value: ResourceType; label: string }> = [
@@ -18,7 +19,7 @@ const resourceTypes: Array<{ value: ResourceType; label: string }> = [
 type PanelMode = "new" | "edit" | "quote" | null;
 
 export function ResourceOpsWorkspace({ initialResources }: { initialResources: ResourceMaster[] }) {
-  const [resources, setResources] = useState(initialResources);
+  const { resources, setResources } = useOpsResourcePreviewStore(initialResources);
   const [mode, setMode] = useState<PanelMode>(null);
   const [selected, setSelected] = useState<ResourceMaster | null>(null);
   const [activity, setActivity] = useState<string[]>([]);
@@ -108,7 +109,7 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
           <p className="text-sm font-semibold tracking-[0.18em] text-gold">RESOURCE OPS</p>
           <h2 className="mt-1 text-xl font-semibold text-ink">会务资源录入与主档维护</h2>
           <p className="mt-2 text-sm text-ocean/70">
-            审核预览 / MOCK。这里用于 Chris / 运营审核资源主档结构与录入流程，不代表真实资源库已落库。
+            审核预览 / MOCK。这里用于 Chris / 运营审核资源主档结构与录入流程；新增和编辑会暂存在本地浏览器预览状态，不代表真实资源库已落库。
           </p>
         </div>
         <button className="rounded-ui bg-gold px-4 py-3 text-sm font-semibold text-ink" onClick={openNew} type="button">

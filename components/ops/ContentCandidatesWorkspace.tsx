@@ -6,11 +6,14 @@ import {
   buildContentCandidateSummary,
   nextContentStatus,
 } from "@/lib/resources/contentCandidates";
+import { useOpsResourcePreviewStore } from "@/lib/resources/useOpsResourcePreviewStore";
 import type { ResourceContentStatus, ResourceMaster } from "@/lib/resources/types";
 
 export function ContentCandidatesWorkspace({ initialResources }: { initialResources: ResourceMaster[] }) {
-  const [resources, setResources] = useState(initialResources);
-  const [message, setMessage] = useState("内容素材候选池为审核预览 / MOCK，不代表已公开发布。");
+  const { resources, setResources } = useOpsResourcePreviewStore(initialResources);
+  const [message, setMessage] = useState(
+    "内容素材候选池为审核预览 / MOCK；这里读取本地浏览器预览资源，不代表真实资源库已落库或已公开发布。"
+  );
 
   const candidates = useMemo(() => resources.map(buildContentCandidateSummary), [resources]);
 

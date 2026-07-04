@@ -33,12 +33,22 @@
 | `event_type` | `customer` | 需求摘要 | 需求判断 | 可见 |
 | `event_start_date` | `customer` | 需求摘要 | 需求判断 | 可见 |
 | `event_end_date` | `customer` | 需求摘要 | 需求判断 | 可见 |
+| `consultation_stage` | 分版本 | 客户侧显示咨询进度 | 运营判断客户阶段 | 客户侧文案应使用“初步了解中 / 方向比较中 / 可整理方案 / 建议人工跟进” |
+| `customer_goal_summary` | `customer` | 活动意图摘要 | 需求判断 | 如客户答谢、经销商大会、考察团、内部培训 |
+| `customer_priority_focus` | `customer` | 关注重点摘要 | 路线判断 | 如控预算 / 重形象 / 重效率 / 重关系维护 |
+| `event_city` | `customer` | 会务地点摘要 | 城市匹配与资源筛选 | 必须显式采集，不能只藏在自由备注里 |
+| `event_location_region` | `customer` | 区域偏好摘要 | 资源筛选 | 如 KLCC / Bukit Bintang / 槟城等 |
+| `region_preference_summary` | `customer` | 区域倾向摘要 | 路线判断 | 客户尚未锁定具体城市时也应可表达 |
+| `location_flexibility` | `customer` | 是否接受顾问建议城市 | 路线判断 | 如已锁定 / 可建议 / 暂未确定 |
 | `attendee_count` | `customer` | 需求摘要 | 预算估算 | 可见 |
+| `scale_band` | `customer` | 大致规模摘要 | 预算估算与资源路由 | 如小型 / 中型 / 较大型，允许在人数未明确时使用 |
 | `budget_range` | `customer` | 预算匹配 | 预算判断 | 可见，但不评价客户预算高低 |
 | `budget_preference` | `customer` | 方案选择 | 跟进判断 | 如经济型、标准型、高配型 |
 | `budget_advice_summary` | `customer` | 预算说明 | 需求理解 | 只能表达服务取舍 |
 | `budget_estimate_summary` | `customer` | 预算估算摘要 | 预算判断 | 不是正式报价 |
 | `selected_package` | `customer` | 方案包展示 | 跟进判断 | 建议值：经济型 / 标准型 / 高配型 / 自定义 |
+| `config_readiness` | `operator` | 不展示 | 判断是否可进入配置页 | 内部值可为 low / medium / high |
+| `recommended_next_step` | 分版本 | 客户侧显示下一步建议 | 运营侧显示建议动作 | 客户侧只展示友好动作，如继续了解 / 整理方案 / 等待顾问确认 |
 | `needs_completeness_score` | `operator` | 不展示 | 判断信息完整度 | 客户侧可展示“还需确认项”，不能展示评分 |
 | `budget_match_score` | `operator` | 不展示 | 判断预算匹配 | 客户侧只展示预算覆盖度文案或进度，不展示内部分数 |
 | `service_fit_score` | `operator` | 不展示 | 判断服务可行性 | 客户侧只展示可行性说明 |
@@ -95,6 +105,73 @@
 | `created_by` | `operator` | 不展示 | 追踪来源 | AI / operator |
 | `budget_estimate_items.visibility` | `server_only` | 控制明细输出 | 控制明细输出 | 只返回 `customer` 明细 |
 
+## 资源主档 `resource_master`
+
+资源主档存的是长期合作资源、参考区间和适用条件，不是客户可直接成交的最终报价。
+
+| 字段 | 可见性 | 客户侧用途 | 运营侧用途 | 备注 |
+|---|---|---|---|---|
+| `resource_type` | `public` | 资源分类 | 资源筛选 | 如场地、晚宴、AV、物料 |
+| `resource_name` | `public` | 资源名称 | 资源识别 | 可公开展示 |
+| `supplier_name` | `operator` | 不展示 | 合作方识别 | 不默认向客户公开 |
+| `city` | `public` | 地域判断 | 资源筛选 | 可公开 |
+| `district` | `public` | 地域判断 | 资源筛选 | 可公开 |
+| `capacity_or_spec` | `customer` | 能力判断 | 资源筛选 | 可公开 |
+| `reference_price_min` | `customer` | 参考预算区间 | 资源判断 | 只能表述为参考范围 |
+| `reference_price_max` | `customer` | 参考预算区间 | 资源判断 | 同上 |
+| `pricing_unit` | `customer` | 计价口径说明 | 资源判断 | 如每桌、每晚、每套 |
+| `price_scope_note` | `customer` | 参考价说明 | 对外解释 | 必须强调非正式报价 |
+| `seasonality_rule` | `customer` | 影响价格的公开因素 | 询价准备 | 只能表述规律，不承诺具体涨跌 |
+| `date_conflict_sensitivity` | `operator` | 不展示 | 档期风险判断 | 内部判断 |
+| `minimum_order_requirement` | `customer` | 使用门槛说明 | 询价准备 | 可公开 |
+| `lead_time_requirement` | `customer` | 提前期说明 | 询价准备 | 可公开 |
+| `requires_quote_confirmation` | `customer` | 提示需顾问确认 | 控制 AI 说法 | 默认应为 true |
+| `strategic_cooperation_level` | `operator` | 不展示 | 合作深度管理 | 内部字段 |
+| `agreement_status` | `operator` | 不展示 | 协议管理 | 内部字段 |
+| `customer_visible_summary` | `customer` | 资源摘要 | 对外话术 | 客户可见摘要 |
+| `internal_negotiation_note` | `operator` | 不展示 | 谈判参考 | 严禁外露 |
+| `internal_risk_note` | `operator` | 不展示 | 风险判断 | 严禁外露 |
+| `last_verified_at` | `operator` | 不展示 | 数据可信度判断 | 内部字段 |
+| `content_status` | `operator` | 不展示 | 内容素材状态控制 | Phase 2 使用 `draft / needs_review / verified / public_ready`；`public_ready` 只表示内部内容生产准备就绪，不等于公开发布 |
+
+补充原则：
+
+- `resource_master` 不仅需要列表展示，还需要运营可用的新增 / 编辑入口。
+- 客户侧或 AI 顾问只能消费经过服务端白名单映射、已核对且明确放行的资源信息；`content_status` 不直接暴露给客户。`published` 只属于未来 Phase 3 正式发布系统，不是 Phase 2 可操作状态。
+
+## 当次询价单 `inquiry_quote_requests`
+
+当次询价单是某个客户、某个日期、某次活动下的实时询价结果，才允许沉淀本次档期和本次正式报价范围。
+
+| 字段 | 可见性 | 客户侧用途 | 运营侧用途 | 备注 |
+|---|---|---|---|---|
+| `inquiry_id` | `server_only` | 不展示 | 关联线索 | 内部关联 |
+| `resource_master_id` | `server_only` | 不展示 | 关联资源 | 内部关联 |
+| `quote_request_type` | `operator` | 不展示 | 区分场地 / 客房 / 晚宴等 | 内部字段 |
+| `event_date_start` | `customer` | 询价上下文 | 询价执行 | 可回显 |
+| `event_date_end` | `customer` | 询价上下文 | 询价执行 | 可回显 |
+| `attendee_count` | `customer` | 询价上下文 | 询价执行 | 可回显 |
+| `customer_budget_range` | `customer` | 预算上下文 | 询价执行 | 可回显 |
+| `quoted_price_min` | `customer` | 本次询价结果 | 正式跟进 | 只有当次询价已确认后才可对客展示 |
+| `quoted_price_max` | `customer` | 本次询价结果 | 正式跟进 | 同上 |
+| `quote_status` | `customer` | 询价状态提示 | 流程推进 | 对客文案需友好翻译 |
+| `availability_status` | `customer` | 档期是否待确认 / 可用 | 询价判断 | 不展示内部原因 |
+| `seasonality_note` | `customer` | 价格波动原因说明 | 询价判断 | 可公开的解释性说明 |
+| `conflict_note` | `operator` | 不展示 | 档期冲突判断 | 内部字段 |
+| `supplier_response_summary` | `operator` | 不展示 | 保留原始供应方反馈摘要 | 内部字段 |
+| `payment_term_summary` | `customer` | 付款条款摘要 | 合同准备 | 仅在已确认后对客展示 |
+| `cancellation_term_summary` | `customer` | 取消条款摘要 | 合同准备 | 仅在已确认后对客展示 |
+| `customer_visible_quote_summary` | `customer` | 本次询价摘要 | 对外呈现 | 客户可见版本 |
+| `operator_followup_note` | `operator` | 不展示 | 跟进记录 | 严禁外露 |
+| `quoted_by` | `operator` | 不展示 | 责任归属 | 内部字段 |
+| `quoted_at` | `operator` | 不展示 | 时效追踪 | 内部字段 |
+| `expires_at` | `operator` | 不展示 | 询价失效管理 | 内部字段 |
+
+补充原则：
+
+- 运营必须能从线索或资源主档直接发起当次询价单。
+- 客户侧只看得到已确认后的摘要，不看得到供应商原始回复、谈判过程和内部判断。
+
 ## AI 对话 `ai_conversations`
 
 | 字段 | 可见性 | 客户侧用途 | 运营侧用途 | 备注 |
@@ -102,8 +179,16 @@
 | `session_id` | `server_only` | 不展示 | 会话追踪 | 不直接暴露 |
 | `channel` | `operator` | 不展示 | 渠道分析 | 如 web / miniapp / wechat |
 | `entry_page` | `operator` | 不展示 | 来源分析 | 可用于运营 |
+| `consultation_stage` | 分版本 | 客户侧显示咨询进度 | 运营判断客户阶段 | 客户侧不显示 A/B/C/D 字母，只显示友好进度文案 |
+| `stage_history` | `operator` | 不展示 | 观察客户从泛咨询到配置的推进过程 | 内部字段 |
 | `messages_summary` | 分版本 | 客户版只展示需求摘要 | 运营版可看对话摘要 | 不把原始运营判断给客户 |
 | `extracted_requirements` | `customer` | 需求摘要 | 结构化线索 | 只输出客户已提供的信息 |
+| `customer_goal_summary` | `customer` | 活动意图摘要 | 结构化线索 | 可见 |
+| `customer_priority_focus` | `customer` | 关注重点摘要 | 结构化线索 | 可见 |
+| `region_preference_summary` | `customer` | 区域倾向摘要 | 结构化线索 | 可见 |
+| `scale_band` | `customer` | 大致规模摘要 | 结构化线索 | 可见 |
+| `config_readiness` | `operator` | 不展示 | 判断何时进入配置页或转人工 | 严禁客户侧展示 |
+| `recommended_next_step` | 分版本 | 客户侧显示下一步建议 | 运营侧显示建议动作 | 必须做文案分版本 |
 | `selected_package` | `customer` | 方案包 | 线索判断 | 可见 |
 | `service_selection_summary` | `customer` | 服务项摘要 | 线索判断 | 可见 |
 | `budget_match_summary` | 分版本 | 客户版预算解释 | 运营版预算判断 | 必须分版本 |
@@ -145,6 +230,11 @@
 
 ```ts
 type CustomerAdvisorState = {
+  consultation: {
+    stage: "orientation" | "exploring" | "structuring" | "handoff_ready";
+    stageLabel: string;
+    canEnterConfigurator: boolean;
+  };
   inquiry: {
     company?: string;
     contactName?: string;
@@ -155,12 +245,24 @@ type CustomerAdvisorState = {
     eventType?: string;
     eventStartDate?: string;
     eventEndDate?: string;
+    customerGoalSummary?: string;
+    customerPriorityFocus?: string[];
+    regionPreferenceSummary?: string;
     attendeeCount?: number;
+    scaleBand?: "small" | "medium" | "large" | "undetermined";
     budgetRange?: string;
     budgetPreference?: "经济型" | "标准型" | "高配型" | "自定义";
     selectedPackage?: "经济型" | "标准型" | "高配型" | "自定义";
     customerStatus: "draft" | "ready_to_submit" | "submitted" | "consultant_confirming";
   };
+  discoverySummary: Array<{
+    label: string;
+    value: string;
+  }>;
+  suggestedEntryActions: Array<{
+    label: string;
+    action: "learn_service_scope" | "compare_cities" | "start_briefing" | "enter_configurator";
+  }>;
   serviceSelections: Array<{
     category: string;
     itemName: string;
@@ -207,6 +309,8 @@ recommended_followup_focus
 recommended_next_action
 recommended_reply
 operator_notes
+config_readiness
+stage_history
 ```
 
 ## 运营通知允许内容

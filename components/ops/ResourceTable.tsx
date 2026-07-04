@@ -19,6 +19,13 @@ const cooperationLabel: Record<ResourceMaster["strategicCooperationLevel"], stri
   candidate: "候选资源",
 };
 
+const contentStatusLabel: Record<ResourceMaster["contentStatus"], string> = {
+  draft: "草稿",
+  needs_review: "待审核",
+  verified: "已核对",
+  public_ready: "可进入内容生产",
+};
+
 export function ResourceTable({
   onEdit,
   onStartQuote,
@@ -44,6 +51,7 @@ export function ResourceTable({
               <th className="px-4 py-3">参考价范围</th>
               <th className="px-4 py-3">必须询价</th>
               <th className="px-4 py-3">合作状态</th>
+              <th className="px-4 py-3">内容状态</th>
               <th className="px-4 py-3">适用条件</th>
               <th className="px-4 py-3">最近确认</th>
               {onEdit || onStartQuote ? <th className="px-4 py-3">动作</th> : null}
@@ -77,6 +85,7 @@ export function ResourceTable({
                   <p className="font-semibold text-ink">{cooperationLabel[resource.strategicCooperationLevel]}</p>
                   <p className="mt-1 text-xs text-ocean/55">{resource.agreementStatus}</p>
                 </td>
+                <td className="px-4 py-4 text-ocean">{contentStatusLabel[resource.contentStatus]}</td>
                 <td className="max-w-[280px] px-4 py-4 text-ocean/70">{resource.priceScopeNote}</td>
                 <td className="px-4 py-4">{resource.lastVerifiedAt}</td>
                 {onEdit || onStartQuote ? (

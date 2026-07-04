@@ -59,7 +59,16 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
       requiresQuoteConfirmation: formData.get("requiresQuoteConfirmation") === "on",
       agreementStatus: String(formData.get("agreementStatus") || "mock") as ResourceMaster["agreementStatus"],
       lastVerifiedAt: now,
-      contentStatus: "mock",
+      publicSummaryDraft: String(formData.get("publicSummaryDraft") || ""),
+      publicContentNotes: String(formData.get("publicContentNotes") || ""),
+      commonUseCases: csvList(formData.get("commonUseCases")),
+      cityContentTags: csvList(formData.get("cityContentTags")),
+      faqSeeds: lineList(formData.get("faqSeeds")),
+      casePotential: String(formData.get("casePotential") || "none") as ResourceMaster["casePotential"],
+      imageAuthorizationStatus: String(
+        formData.get("imageAuthorizationStatus") || "unknown",
+      ) as ResourceMaster["imageAuthorizationStatus"],
+      contentStatus: String(formData.get("contentStatus") || "draft") as ResourceMaster["contentStatus"],
       serviceScope: selected?.serviceScope ?? ["服务范围待补充 [MOCK]"],
       suitableScenarios: selected?.suitableScenarios ?? ["企业会议 [MOCK]"],
       capacityOrSpec: selected?.capacityOrSpec ?? "规格待二次确认 [MOCK]",
@@ -188,6 +197,81 @@ function ResourceForm({
           必须二次询价
         </label>
       </div>
+      <details className="mt-5 rounded-ui border border-line bg-cloud/40 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-ink">
+          公开内容素材（内部候选，不直接对客户展示）
+        </summary>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            公开摘要草稿
+            <textarea
+              className="min-h-24 rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={resource?.publicSummaryDraft ?? ""}
+              name="publicSummaryDraft"
+            />
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            内容备注
+            <textarea
+              className="min-h-24 rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={resource?.publicContentNotes ?? ""}
+              name="publicContentNotes"
+            />
+          </label>
+          <Field label="城市标签（逗号分隔）" name="cityContentTags" defaultValue={(resource?.cityContentTags ?? []).join(", ")} />
+          <Field label="适用场景（逗号分隔）" name="commonUseCases" defaultValue={(resource?.commonUseCases ?? []).join(", ")} />
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            FAQ 素材（每行一个问题）
+            <textarea
+              className="min-h-24 rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={(resource?.faqSeeds ?? []).join("\n")}
+              name="faqSeeds"
+            />
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            图片授权状态
+            <select
+              className="rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={resource?.imageAuthorizationStatus ?? "unknown"}
+              name="imageAuthorizationStatus"
+            >
+              <option value="unknown">未知</option>
+              <option value="internal_only">仅内部使用</option>
+              <option value="public_approved">已确认可公开</option>
+              <option value="needs_replacement">需替换图片</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            案例潜力
+            <select
+              className="rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={resource?.casePotential ?? "none"}
+              name="casePotential"
+            >
+              <option value="none">暂无</option>
+              <option value="anonymous_candidate">匿名案例候选</option>
+              <option value="named_candidate">实名案例候选</option>
+              <option value="approved">已确认授权</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-ink">
+            内容状态
+            <select
+              className="rounded-ui border border-line px-3 py-2 font-normal"
+              defaultValue={resource?.contentStatus ?? "draft"}
+              name="contentStatus"
+            >
+              <option value="draft">草稿</option>
+              <option value="needs_review">待审核</option>
+              <option value="verified">已核对</option>
+              <option value="public_ready">可进入公开内容生产</option>
+            </select>
+          </label>
+        </div>
+        <p className="mt-3 text-xs leading-5 text-ocean/65">
+          这里是 public-safe 候选素材，不代表已经公开发布；供应商、谈判、风险和当次报价不要填写在这里。
+        </p>
+      </details>
       <button className="mt-5 rounded-ui bg-gold px-4 py-3 text-sm font-semibold text-ink" type="submit">
         保存资源
       </button>
@@ -253,4 +337,18 @@ function withMockLabel(value: string) {
 
 function stripMockLabel(value?: string) {
   return value?.replace(" [MOCK]", "");
+}
+
+function csvList(value: FormDataEntryValue | null): string[] {
+  return String(value || "")
+    .split(/[,，]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function lineList(value: FormDataEntryValue | null): string[] {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }

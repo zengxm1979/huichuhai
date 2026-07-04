@@ -17,7 +17,13 @@ export async function POST(request: NextRequest | Request) {
     return NextResponse.redirect(new URL(`/ops/login?error=1&next=${encodeURIComponent(next)}`, origin), 303);
   }
 
-  const response = NextResponse.redirect(new URL(next, origin), 303);
+  const response = new NextResponse(createLoginCompletionHtml(next), {
+    headers: {
+      "cache-control": "no-store",
+      "content-type": "text/html; charset=utf-8",
+    },
+    status: 200,
+  });
   response.cookies.set(OPS_REVIEW_SESSION_COOKIE, createOpsSessionValue(), {
     httpOnly: true,
     maxAge: OPS_REVIEW_SESSION_MAX_AGE_SECONDS,
@@ -27,6 +33,29 @@ export async function POST(request: NextRequest | Request) {
   });
 
   return response;
+}
+
+function createLoginCompletionHtml(next: string) {
+  const nextJson = JSON.stringify(next);
+  const escapedNext = escapeHtmlAttribute(next);
+
+  return `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta http-equiv="refresh" content="0;url=${escapedNext}" />
+    <title>会出海内部运营入口</title>
+  </head>
+  <body>
+    <p>正在进入内部运营预览...</p>
+    <script>window.location.replace(${nextJson});</script>
+  </body>
+</html>`;
+}
+
+function escapeHtmlAttribute(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function getRequestOrigin(request: NextRequest | Request) {

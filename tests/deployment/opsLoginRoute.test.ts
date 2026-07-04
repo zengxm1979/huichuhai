@@ -15,7 +15,7 @@ function formRequest(body: Record<string, string>, headers: Record<string, strin
 }
 
 describe("ops login route", () => {
-  it("sets the ops review session cookie on the redirect response", async () => {
+  it("sets the ops review session cookie on a 200 completion page", async () => {
     const response = await POST(
       formRequest({
         next: "/ops/content-candidates",
@@ -23,8 +23,13 @@ describe("ops login route", () => {
       }),
     );
 
-    expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://hch.ideaegg.com.cn/ops/content-candidates");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("content-type")).toContain("text/html");
+
+    const html = await response.text();
+    expect(html).toContain('window.location.replace("/ops/content-candidates")');
+    expect(html).toContain('url=/ops/content-candidates');
 
     const setCookie = response.headers.get("set-cookie") ?? "";
     expect(setCookie).toContain(`${OPS_REVIEW_SESSION_COOKIE}=`);
@@ -48,12 +53,12 @@ describe("ops login route", () => {
     expect(response.headers.get("set-cookie")).toBeNull();
   });
 
-  it("uses forwarded host headers for the login redirect origin", async () => {
+  it("uses forwarded host headers for failed login redirect origin", async () => {
     const response = await POST(
       new Request("http://localhost:3000/ops/login/session", {
         body: new URLSearchParams({
           next: "/ops/resources",
-          password: "hch-ops-202607",
+          password: "wrong-password",
         }),
         headers: {
           "content-type": "application/x-www-form-urlencoded",
@@ -64,6 +69,6 @@ describe("ops login route", () => {
       }),
     );
 
-    expect(response.headers.get("location")).toBe("https://hch.ideaegg.com.cn/ops/resources");
+    expect(response.headers.get("location")).toBe("https://hch.ideaegg.com.cn/ops/login?error=1&next=%2Fops%2Fresources");
   });
 });

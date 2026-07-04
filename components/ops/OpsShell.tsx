@@ -23,9 +23,9 @@ export function OpsShell({ children, title }: { children: ReactNode; title: stri
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-ui bg-gold px-4 py-2 text-sm font-semibold text-ink">审核预览 / MOCK</span>
-            <Link className="rounded-ui border border-white/20 px-4 py-2 text-sm font-semibold text-white/80" href="/ops/logout">
+            <a className="rounded-ui border border-white/20 px-4 py-2 text-sm font-semibold text-white/80" href="/ops/logout">
               退出
-            </Link>
+            </a>
           </div>
         </div>
         <nav className="mx-auto flex max-w-7xl flex-wrap gap-2 px-5 pb-5">

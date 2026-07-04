@@ -2,10 +2,11 @@ import { notFound } from "next/navigation";
 import { ResourceOpsWorkspace } from "@/components/ops/ResourceOpsWorkspace";
 import { OpsShell } from "@/components/ops/OpsShell";
 import { mockResources } from "@/content/mockResources";
+import { getOpsPreviewToken } from "@/lib/deployment/reviewAccess";
 
 export const dynamic = "force-dynamic";
 
-const previewToken = process.env.OPS_PREVIEW_TOKEN ?? "huichuhai-ops-preview";
+const previewToken = getOpsPreviewToken();
 
 export default async function OpsResourcesPage({
   searchParams,

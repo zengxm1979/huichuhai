@@ -3,10 +3,11 @@ import { QuoteRequestOpsWorkspace } from "@/components/ops/QuoteRequestOpsWorksp
 import { OpsShell } from "@/components/ops/OpsShell";
 import { mockQuoteRequests } from "@/content/mockQuoteRequests";
 import { mockResources } from "@/content/mockResources";
+import { getOpsPreviewToken } from "@/lib/deployment/reviewAccess";
 
 export const dynamic = "force-dynamic";
 
-const previewToken = process.env.OPS_PREVIEW_TOKEN ?? "huichuhai-ops-preview";
+const previewToken = getOpsPreviewToken();
 
 export default async function OpsQuoteRequestsPage({
   searchParams,

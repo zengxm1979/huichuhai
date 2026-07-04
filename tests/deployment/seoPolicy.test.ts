@@ -26,7 +26,7 @@ describe("deployment SEO policy", () => {
   it("only enables sitemap and indexing when explicitly configured", () => {
     const env = {
       NEXT_PUBLIC_SITE_INDEXABLE: "true",
-      NEXT_PUBLIC_SITE_URL: "https://review-hch.ideaegg.com.cn/",
+      NEXT_PUBLIC_SITE_URL: "https://hch.ideaegg.com.cn/",
     };
 
     expect(isSiteIndexable(env)).toBe(true);
@@ -35,8 +35,8 @@ describe("deployment SEO policy", () => {
         userAgent: "*",
         allow: "/",
       },
-      sitemap: "https://review-hch.ideaegg.com.cn/sitemap.xml",
+      sitemap: "https://hch.ideaegg.com.cn/sitemap.xml",
     });
-    expect(buildSitemapEntries(env).map((entry) => entry.url)).toContain("https://review-hch.ideaegg.com.cn/");
+    expect(buildSitemapEntries(env).map((entry) => entry.url)).toContain("https://hch.ideaegg.com.cn/");
   });
 });

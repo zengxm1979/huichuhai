@@ -2,10 +2,11 @@ import { notFound } from "next/navigation";
 import { LeadSummaryTable } from "@/components/ops/LeadSummaryTable";
 import { OpsShell } from "@/components/ops/OpsShell";
 import { internalLeadState } from "@/lib/advisor/mockAdvisorFlow";
+import { getOpsPreviewToken } from "@/lib/deployment/reviewAccess";
 
 export const dynamic = "force-dynamic";
 
-const previewToken = process.env.OPS_PREVIEW_TOKEN ?? "huichuhai-ops-preview";
+const previewToken = getOpsPreviewToken();
 
 export default async function OpsLeadsPage({
   searchParams,

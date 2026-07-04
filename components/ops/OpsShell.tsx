@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { getOpsPreviewToken } from "@/lib/deployment/reviewAccess";
 
 const opsLinks = [
   { href: "/ops/leads", label: "AI 线索" },
@@ -9,7 +10,7 @@ const opsLinks = [
 ];
 
 export function OpsShell({ children, title }: { children: ReactNode; title: string }) {
-  const token = process.env.OPS_PREVIEW_TOKEN ?? "huichuhai-ops-preview";
+  const token = getOpsPreviewToken();
 
   return (
     <main className="min-h-screen bg-cloud">

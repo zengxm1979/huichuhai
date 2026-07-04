@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { InquiryForm } from "@/components/inquiry/InquiryForm";
@@ -37,9 +37,9 @@ export default function InquiryPage() {
               <p className="mt-3 text-sm leading-7 text-white/70">
                 预算、服务项或方案包不确定时，先生成一版参考预算结构，再提交给顾问询价确认。
               </p>
-              <Link className="mt-5 inline-block rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink" href="/advisor">
+              <OpenAdvisorButton className="mt-5 inline-block rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink">
                 问问 AI 办会顾问
-              </Link>
+              </OpenAdvisorButton>
             </section>
           </aside>
         </section>

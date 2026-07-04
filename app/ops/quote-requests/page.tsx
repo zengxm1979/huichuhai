@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { QuoteRequestTable } from "@/components/ops/QuoteRequestTable";
+import { QuoteRequestOpsWorkspace } from "@/components/ops/QuoteRequestOpsWorkspace";
 import { OpsShell } from "@/components/ops/OpsShell";
 import { mockQuoteRequests } from "@/content/mockQuoteRequests";
 import { mockResources } from "@/content/mockResources";
@@ -21,7 +21,7 @@ export default async function OpsQuoteRequestsPage({
 
   return (
     <OpsShell title="当次询价单">
-      <QuoteRequestTable quoteRequests={mockQuoteRequests} resources={mockResources} />
+      <QuoteRequestOpsWorkspace initialQuoteRequests={mockQuoteRequests} resources={mockResources} />
     </OpsShell>
   );
 }

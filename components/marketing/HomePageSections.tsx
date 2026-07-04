@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Building2, CheckCircle2, ShieldCheck } from "lucide-react";
+import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
 import { faqs, featuredVenues, materialSupport, serviceScenarios } from "@/content/site";
 
 export function HomePageSections() {
@@ -27,9 +28,9 @@ export function HomePageSections() {
             <Link className="rounded-ui bg-gold px-6 py-3 font-semibold text-ink" href="/inquiry">
               免费提交办会需求
             </Link>
-            <Link className="rounded-ui border border-white/35 px-6 py-3 font-semibold text-white" href="/advisor">
+            <OpenAdvisorButton className="rounded-ui border border-white/35 px-6 py-3 font-semibold text-white">
               问问 AI 办会顾问
-            </Link>
+            </OpenAdvisorButton>
           </div>
           <div className="mt-8 flex flex-wrap gap-5 text-sm text-white/78">
             {["国际化场地资源", "全程中文服务", "落地执行保障", "预算透明可控"].map((item) => (
@@ -108,9 +109,9 @@ export function HomePageSections() {
               </div>
             </div>
             <div className="grid gap-3">
-              <Link className="rounded-ui bg-gold px-5 py-3 text-center font-semibold text-ink" href="/advisor">
+              <OpenAdvisorButton className="rounded-ui bg-gold px-5 py-3 text-center font-semibold text-ink">
                 立即咨询 AI 办会顾问
-              </Link>
+              </OpenAdvisorButton>
               <Link className="rounded-ui border border-white/35 px-5 py-3 text-center font-semibold text-white" href="/inquiry">
                 提交具体需求
               </Link>
@@ -177,9 +178,9 @@ export function HomePageSections() {
               <Link className="rounded-ui bg-gold px-5 py-3 text-center font-semibold text-ink" href="/inquiry">
                 免费提交办会需求
               </Link>
-              <Link className="rounded-ui border border-line px-5 py-3 text-center font-semibold text-ink" href="/advisor">
+              <OpenAdvisorButton className="rounded-ui border border-line px-5 py-3 text-center font-semibold text-ink">
                 问问 AI 办会顾问
-              </Link>
+              </OpenAdvisorButton>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ResourceTable } from "@/components/ops/ResourceTable";
+import { ResourceOpsWorkspace } from "@/components/ops/ResourceOpsWorkspace";
 import { OpsShell } from "@/components/ops/OpsShell";
 import { mockResources } from "@/content/mockResources";
 
@@ -20,7 +20,7 @@ export default async function OpsResourcesPage({
 
   return (
     <OpsShell title="资源主档">
-      <ResourceTable resources={mockResources} />
+      <ResourceOpsWorkspace initialResources={mockResources} />
     </OpsShell>
   );
 }

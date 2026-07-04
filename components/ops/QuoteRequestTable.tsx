@@ -1,3 +1,5 @@
+"use client";
+
 import type { InquiryQuoteRequest, ResourceMaster } from "@/lib/resources/types";
 
 const availabilityLabel: Record<InquiryQuoteRequest["availabilityStatus"], string> = {
@@ -17,9 +19,11 @@ const quoteStatusLabel: Record<InquiryQuoteRequest["quoteStatus"], string> = {
 };
 
 export function QuoteRequestTable({
+  onUpdate,
   quoteRequests,
   resources,
 }: {
+  onUpdate?: (request: InquiryQuoteRequest) => void;
   quoteRequests: InquiryQuoteRequest[];
   resources: ResourceMaster[];
 }) {
@@ -32,7 +36,7 @@ export function QuoteRequestTable({
         <p className="mt-2 text-sm text-ocean/70">某个客户、某个活动日期、某次资源询价下的实时档期和本次价格确认。</p>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1160px] border-collapse text-sm">
+        <table className="w-full min-w-[1260px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-line bg-cloud text-left text-ocean/70">
               <th className="px-4 py-3">客户</th>
@@ -43,6 +47,7 @@ export function QuoteRequestTable({
               <th className="px-4 py-3">本次报价范围</th>
               <th className="px-4 py-3">供应商摘要</th>
               <th className="px-4 py-3">跟进</th>
+              {onUpdate ? <th className="px-4 py-3">动作</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -88,6 +93,13 @@ export function QuoteRequestTable({
                   </td>
                   <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.supplierResponseSummary}</td>
                   <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.operatorFollowupNote}</td>
+                  {onUpdate ? (
+                    <td className="px-4 py-4">
+                      <button className="rounded-ui bg-gold px-3 py-2 text-xs font-semibold text-ink" onClick={() => onUpdate(request)} type="button">
+                        更新询价
+                      </button>
+                    </td>
+                  ) : null}
                 </tr>
               );
             })}

@@ -10,7 +10,7 @@ export default async function AdvisorPage({
   searchParams: Promise<{ state?: string }>;
 }) {
   const params = await searchParams;
-  const step = allowedStates.includes(params.state as AdvisorStep) ? (params.state as AdvisorStep) : "configuration";
+  const step = allowedStates.includes(params.state as AdvisorStep) ? (params.state as AdvisorStep) : "initial";
   const state = getCustomerAdvisorState(step);
 
   return <AdvisorPanel state={state} />;

@@ -13,6 +13,18 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
+import {
+  advisorCityOptions,
+  buildAdvisorReply,
+  createInitialRequirementSummary,
+  extractRequirementsFromText,
+  getMissingFields,
+  isRequirementReady,
+  mergeRequirements,
+  summaryToDisplayRows,
+  type AdvisorRequirementSummary,
+  type LightChatMessage,
+} from "@/lib/advisor/lightConversation";
 import { PACKAGE_TIERS, type PackageTierId, type PackageTierLabel } from "@/lib/constants/packageTiers";
 import type { AdvisorStep, CustomerAdvisorState, ServiceSelection, ServiceSelectionStatus } from "@/lib/advisor/types";
 
@@ -28,7 +40,7 @@ const tierConfig: Record<PackageTierId, { label: PackageTierLabel; multiplier: n
     label: "经济型",
     multiplier: 0.78,
     summary: "经济型会保留场地、基础茶歇、必要 AV 和核心物料，优先压缩晚宴、住宿和影像配置。",
-    confirmations: ["基础 AV 是否够用", "物料范围", "是否保留晚宴"],
+    confirmations: ["基础 AV 是否够用", "会议物料范围", "是否保留晚宴"],
   },
   standard: {
     label: "标准型",
@@ -44,25 +56,23 @@ const tierConfig: Record<PackageTierId, { label: PackageTierLabel; multiplier: n
   },
 };
 
-type ChatMessage = {
-  role: "advisor" | "customer";
-  text: string;
-};
-
 export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
   const initialTier = getTierId(state.inquiry.selectedPackage);
   const [selectedTier, setSelectedTier] = useState<PackageTierId>(initialTier);
   const [services, setServices] = useState(() => normalizeServices(state.serviceSelections));
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [draftInquiry, setDraftInquiry] = useState(state.inquiry);
+  const [requirementSummary, setRequirementSummary] = useState<AdvisorRequirementSummary>(() => summaryFromInquiry(state.inquiry));
+  const [messages, setMessages] = useState<LightChatMessage[]>([
     {
       role: "advisor",
-      text: "您好，我是会出海 AI 办会顾问。可以先告诉我活动类型、人数、城市、时间和预算范围，我会先整理一版可调整方案。[MOCK]",
+      text: "您好，我是会出海 AI 办会顾问。先告诉我会务地点、人数、活动类型和预算，我会整理需求摘要；信息足够后再进入方案配置。[MOCK]",
     },
   ]);
 
   const budget = useMemo(() => calculateBudget(services, selectedTier), [services, selectedTier]);
   const selectedTierConfig = tierConfig[selectedTier];
+  const readyForConfiguration = isRequirementReady(requirementSummary);
   const currentSummary =
     state.step === "budgetMismatch"
       ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问基于本次询价确认资源价格和档期。"
@@ -84,18 +94,34 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
     );
   }
 
+  function applySummary(next: AdvisorRequirementSummary) {
+    setRequirementSummary(next);
+    setDraftInquiry((current) => ({
+      ...current,
+      city: next.eventCity ?? current.city,
+      eventType: next.eventType ?? current.eventType,
+      attendeeCount: next.attendeeCount ?? current.attendeeCount,
+      budgetRange: next.budgetRange ?? current.budgetRange,
+      eventStartDate: next.eventDate ?? current.eventStartDate,
+    }));
+  }
+
   function sendMessage(text = input) {
     const clean = text.trim();
     if (!clean) return;
-    setMessages((current) => [
-      ...current,
-      { role: "customer", text: clean },
-      {
-        role: "advisor",
-        text: "收到。我会把这条补充同步到需求摘要，并优先检查场地、预算和需要人工确认的事项。[MOCK]",
-      },
-    ]);
+    const next = mergeRequirements(requirementSummary, extractRequirementsFromText(clean));
+    applySummary(next);
+    setMessages((current) => [...current, { role: "customer", text: clean }, { role: "advisor", text: buildAdvisorReply(next) }]);
     setInput("");
+  }
+
+  function selectCity(city: string) {
+    const next = mergeRequirements(requirementSummary, {
+      eventCity: city,
+      locationFlexibility: city === "暂未确定" ? "undecided" : "locked",
+    });
+    applySummary(next);
+    setMessages((current) => [...current, { role: "customer", text: `会务地点：${city}` }, { role: "advisor", text: buildAdvisorReply(next) }]);
   }
 
   return (
@@ -137,11 +163,11 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
           </div>
 
           <div className="mt-6 grid gap-3 rounded-ui bg-white/8 p-4 text-sm md:grid-cols-5">
-            <HeaderMetric label="当前询盘" value={state.inquiry.eventType ?? "待补充"} />
-            <HeaderMetric label="预计人数" value={state.inquiry.attendeeCount ? `${state.inquiry.attendeeCount} 人` : "待确认"} />
-            <HeaderMetric label="举办时间" value={state.inquiry.eventStartDate ?? "2026年9月 [MOCK]"} />
-            <HeaderMetric label="地点" value={state.inquiry.city ?? "待确认"} />
-            <HeaderMetric label="预算范围" value={state.inquiry.budgetRange ?? "待确认"} />
+            <HeaderMetric label="当前询盘" value={draftInquiry.eventType ?? "待补充"} />
+            <HeaderMetric label="预计人数" value={draftInquiry.attendeeCount ? `${draftInquiry.attendeeCount} 人` : "待确认"} />
+            <HeaderMetric label="举办时间" value={draftInquiry.eventStartDate ?? "待确认"} />
+            <HeaderMetric label="地点" value={draftInquiry.city ?? "待确认"} />
+            <HeaderMetric label="预算范围" value={draftInquiry.budgetRange ?? "待确认"} />
           </div>
         </div>
       </section>
@@ -150,20 +176,32 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
         <div className="space-y-6">
           <HeroState state={state} />
           {state.step === "initial" ? (
-            <InitialConsultation input={input} messages={messages} onInput={setInput} onSend={sendMessage} />
+            <InitialConsultation
+              input={input}
+              messages={messages}
+              onCitySelect={selectCity}
+              onInput={setInput}
+              onSend={sendMessage}
+              ready={readyForConfiguration}
+              summary={requirementSummary}
+            />
           ) : null}
-          <PackageSelector onSelect={setSelectedTier} selected={selectedTier} />
+          {state.step !== "initial" ? <PackageSelector onSelect={setSelectedTier} selected={selectedTier} /> : null}
           {state.step !== "initial" ? (
             <ServiceSelectionTable onAdjust={adjustService} services={services} tier={selectedTier} />
           ) : null}
         </div>
-        <BudgetSidePanel
-          budget={budget}
-          currentSummary={currentSummary}
-          selectedTier={selectedTier}
-          services={services}
-          state={state}
-        />
+        {state.step === "initial" ? (
+          <InitialSummaryPanel ready={readyForConfiguration} summary={requirementSummary} />
+        ) : (
+          <BudgetSidePanel
+            budget={budget}
+            currentSummary={currentSummary}
+            selectedTier={selectedTier}
+            services={services}
+            state={state}
+          />
+        )}
       </section>
     </main>
   );
@@ -180,7 +218,7 @@ function HeaderMetric({ label, value }: { label: string; value: string }) {
 
 function HeroState({ state }: { state: CustomerAdvisorState }) {
   const titles: Record<AdvisorStep, string> = {
-    initial: "先告诉我们您要办什么会",
+    initial: "先告诉我您要办什么会",
     configuration: "吉隆坡 · 商务会议方案配置",
     budgetMismatch: "预算范围需要进一步调整",
     submit: "提交顾问确认前，请核对方案摘要",
@@ -195,7 +233,7 @@ function HeroState({ state }: { state: CustomerAdvisorState }) {
       />
       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
       <div className="absolute inset-0 flex flex-col justify-end p-6">
-        <p className="text-sm text-gold">方案内容均为示例 [MOCK]，当前为参考范围，不承诺实时档期和最终价格</p>
+        <p className="text-sm text-gold">方案内容均为示例 [MOCK]，预算为参考范围，不承诺实时档期和最终价格</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-semibold md:text-4xl">{titles[state.step]}</h1>
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/78">
           <span>国际化场地资源</span>
@@ -241,18 +279,31 @@ function PackageSelector({ onSelect, selected }: { onSelect: (tier: PackageTierI
 function InitialConsultation({
   input,
   messages,
+  onCitySelect,
   onInput,
   onSend,
+  ready,
+  summary,
 }: {
   input: string;
-  messages: ChatMessage[];
+  messages: LightChatMessage[];
+  onCitySelect: (city: string) => void;
   onInput: (value: string) => void;
   onSend: (value?: string) => void;
+  ready: boolean;
+  summary: AdvisorRequirementSummary;
 }) {
   return (
     <section className="grid gap-4 rounded-ui border border-line bg-white p-5 md:grid-cols-[1fr_280px]">
       <div>
-        <h2 className="text-xl font-semibold text-ink">顾问对话</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold text-ink">顾问对话</h2>
+          {ready ? (
+            <Link className="rounded-ui bg-gold px-4 py-2 text-sm font-semibold text-ink" href="/advisor?state=configuration">
+              进入方案配置
+            </Link>
+          ) : null}
+        </div>
         <div className="mt-4 grid max-h-[360px] gap-3 overflow-y-auto rounded-ui bg-cloud p-4">
           {messages.map((message, index) => (
             <div
@@ -282,9 +333,24 @@ function InitialConsultation({
       </div>
       <div className="rounded-ui bg-ink p-5 text-white">
         <Sparkles className="text-gold" />
-        <p className="mt-3 font-semibold">快捷补充</p>
+        <p className="mt-3 font-semibold">会务地点</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {advisorCityOptions.map((city) => (
+            <button
+              className={`rounded-ui border px-3 py-2 text-xs font-semibold ${
+                summary.eventCity === city ? "border-teal bg-teal/20 text-teal" : "border-white/20 text-white/80"
+              }`}
+              key={city}
+              onClick={() => onCitySelect(city)}
+              type="button"
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+        <p className="mt-5 font-semibold">快捷补充</p>
         <div className="mt-3 grid gap-2">
-          {["我想办经销商大会，约120人", "预算希望控制在80-100万", "需要会议物料和接送机", "想先看标准型方案"].map((item) => (
+          {["地点在吉隆坡，120人，经销商大会，预算80-100万，需要物料和接送机", "预算希望控制在60-70万", "需要晚宴、住宿和茶歇"].map((item) => (
             <button
               className="rounded-ui border border-white/20 px-3 py-2 text-left text-sm text-white/80"
               key={item}
@@ -437,6 +503,40 @@ function BudgetSidePanel({
   );
 }
 
+function InitialSummaryPanel({ ready, summary }: { ready: boolean; summary: AdvisorRequirementSummary }) {
+  const rows = summaryToDisplayRows(summary);
+  const missing = getMissingFields(summary);
+
+  return (
+    <aside className="space-y-4">
+      <section className="rounded-ui bg-ink p-5 text-white">
+        <p className="border-l-4 border-gold pl-3 text-lg font-semibold">需求摘要</p>
+        <div className="mt-5 grid gap-3 text-sm">
+          {rows.map((row) => (
+            <div className="flex justify-between gap-4 border-b border-white/10 pb-3 last:border-0" key={row.label}>
+              <span className="text-white/55">{row.label}</span>
+              <span className="text-right font-semibold">{row.value}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="rounded-ui border border-line bg-white p-5">
+        <h3 className="font-semibold text-ink">{ready ? "可以进入第二层配置" : "还需要补充"}</h3>
+        <p className="mt-3 text-sm leading-7 text-ocean/70">
+          {ready
+            ? "核心信息已收集，可以进入方案包、服务项与预算结构配置。预算仍是参考范围，不是正式报价。"
+            : `请先确认：${missing.join("、")}。AI 会先理解需求，再进入完整资源配置。`}
+        </p>
+        {ready ? (
+          <Link className="mt-4 inline-flex rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink" href="/advisor?state=configuration">
+            进入方案配置
+          </Link>
+        ) : null}
+      </section>
+    </aside>
+  );
+}
+
 function StatusBadge({ status }: { status: ServiceSelectionStatus }) {
   const label: Record<ServiceSelectionStatus, string> = {
     required: "必选",
@@ -496,4 +596,16 @@ function quantityStep(service: InteractiveService) {
 function getTierId(label?: CustomerAdvisorState["inquiry"]["selectedPackage"]): PackageTierId {
   const found = PACKAGE_TIERS.find((tier) => tier.label === label);
   return found?.id ?? "standard";
+}
+
+function summaryFromInquiry(inquiry: CustomerAdvisorState["inquiry"]): AdvisorRequirementSummary {
+  const initial = createInitialRequirementSummary();
+  return {
+    ...initial,
+    eventCity: inquiry.city,
+    eventType: inquiry.eventType,
+    attendeeCount: inquiry.attendeeCount,
+    budgetRange: inquiry.budgetRange,
+    eventDate: inquiry.eventStartDate,
+  };
 }

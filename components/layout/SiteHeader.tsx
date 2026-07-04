@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CalendarCheck, MessageCircle } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
+import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
 
 export function SiteHeader() {
   return (
@@ -22,13 +23,12 @@ export function SiteHeader() {
           <a href="/#faq">FAQ</a>
         </nav>
         <div className="flex items-center gap-2">
-          <Link
+          <OpenAdvisorButton
             className="hidden items-center gap-2 rounded-ui border border-white/25 px-4 py-2 text-sm text-white md:flex"
-            href="/advisor"
+            showIcon
           >
-            <MessageCircle size={16} />
             AI 顾问
-          </Link>
+          </OpenAdvisorButton>
           <Link className="flex items-center gap-2 rounded-ui bg-gold px-4 py-2 text-sm font-semibold text-ink" href="/inquiry">
             <CalendarCheck size={16} />
             提交需求

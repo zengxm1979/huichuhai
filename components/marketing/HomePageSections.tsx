@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Building2, CheckCircle2, ShieldCheck } from "lucide-react";
@@ -119,7 +121,7 @@ export function HomePageSections() {
                 <div className="p-4">
                   <p className="text-sm font-semibold leading-6 text-ink">{item.title}</p>
                   <p className="mt-2 min-h-10 text-xs leading-5 text-ocean/70">{item.summary}</p>
-                  <p className="mt-3 rounded-ui bg-coral/10 px-2 py-1 text-xs font-semibold text-coral">{item.detail}</p>
+                  <p className="mt-3 rounded-ui bg-gold/15 px-2 py-1 text-xs font-semibold text-ocean">{item.detail}</p>
                 </div>
               </article>
             ))}
@@ -210,9 +212,6 @@ function MaterialPhoto({ alt, image }: { alt: string; image: string }) {
     <div className="relative h-36 overflow-hidden bg-ink">
       <img alt={alt} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" src={image} />
       <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
-      <span className="absolute right-3 top-3 rounded-ui bg-ink/70 px-2 py-1 text-[10px] font-semibold tracking-[0.14em] text-white backdrop-blur">
-        MOCK
-      </span>
     </div>
   );
 }

@@ -1,12 +1,10 @@
-<svg width="88" height="88" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="88" height="88" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" data-asset-status="phase-1-interim">
   <title id="title">HCH mark</title>
-  <desc id="desc">Phase-1 interim standalone HCH mark in deep ocean blue with teal C accent.</desc>
-  <rect width="88" height="88" rx="8" fill="#F7FAF8"/>
-  <g fill="#06243A">
-    <path d="M11 20h8v20h13V20h8v48h-8V48H19v20h-8V20Z"/>
-    <path d="M49 20h8v20h13V20h8v48h-8V48H57v20h-8V20Z"/>
-  </g>
-  <path d="M51.5 30C48.6 26.9 44.7 25 40.4 25C31.6 25 25 33.3 25 44C25 54.9 31.7 63 40.4 63C44.8 63 48.7 61 51.6 57.8" stroke="#06243A" stroke-width="8" stroke-linecap="square"/>
-  <path d="M34 43.5C39.9 39.5 45.1 38.8 51.2 42.6" stroke="#2C9A93" stroke-width="3.5" stroke-linecap="square"/>
-  <path d="M34.5 47.5C40.3 51.1 45.5 51.7 51.4 48.1" stroke="#2C9A93" stroke-width="3.5" stroke-linecap="square"/>
+  <desc id="desc">Phase-1 interim standalone HCH serif mark in deep ocean blue with teal C accent.</desc>
+  <rect width="88" height="88" rx="6" fill="#F7FAF8"/>
+  <text x="9" y="55" fill="#06243A" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" letter-spacing="-2">H</text>
+  <text x="32" y="55" fill="#06243A" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" letter-spacing="-2">C</text>
+  <text x="57" y="55" fill="#06243A" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" letter-spacing="-2">H</text>
+  <path d="M42 37C49 32 56 33 62 39" stroke="#4B9B93" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M42 50C49 55 57 54 63 48" stroke="#4B9B93" stroke-width="2.8" stroke-linecap="round"/>
 </svg>

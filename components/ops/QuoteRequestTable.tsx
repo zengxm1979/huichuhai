@@ -101,8 +101,14 @@ export function QuoteRequestTable({
                     <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.operatorFollowupNote}</td>
                     {onUpdate ? (
                       <td className="px-4 py-4">
-                        <button className="rounded-ui bg-gold px-3 py-2 text-xs font-semibold text-ink" onClick={() => onUpdate(request)} type="button">
-                          更新询价
+                        <button
+                          className={`rounded-ui px-3 py-2 text-xs font-semibold ${
+                            expandedRequestId === request.id ? "bg-teal text-white" : "bg-gold text-ink"
+                          }`}
+                          onClick={() => onUpdate(request)}
+                          type="button"
+                        >
+                          {expandedRequestId === request.id ? "正在更新此询价" : "更新询价"}
                         </button>
                       </td>
                     ) : null}

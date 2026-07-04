@@ -98,6 +98,12 @@ export function QuoteRequestOpsWorkspace({
       {notice ? <p className="rounded-ui border border-teal/20 bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">{notice}</p> : null}
 
       {creating ? <CreateQuoteRequestForm onCancel={() => setCreating(false)} onCreate={createQuoteRequest} resources={resources} /> : null}
+      {editing ? (
+        <section className="rounded-ui border-2 border-gold bg-gold/10 p-4 shadow-soft" id="quote-update-workspace">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">Update quote request</p>
+          <UpdateQuoteRequestForm onCancel={() => setEditing(null)} onUpdate={updateQuoteRequest} request={editing} />
+        </section>
+      ) : null}
       <QuoteRequestTable
         expandedRequestId={editing?.id}
         onUpdate={setEditing}

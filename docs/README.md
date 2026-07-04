@@ -12,6 +12,14 @@
   - 当前产品设计规格。
   - 已包含业务定位、独立站信息架构、AI 办会顾问、预算匹配、数据模型、GEO、目录规划和后续实现方向。
 
+- `product/customer-internal-field-matrix.md`
+  - 客户可见 / 运营内参字段矩阵。
+  - 定义 AI 顾问、预算匹配、询价表单和运营通知中的字段可见性边界。
+
+- `superpowers/plans/2026-07-04-huichuhai-mvp-implementation.md`
+  - MVP 实现计划。
+  - 用于正式进入代码阶段时按任务拆解执行。
+
 - `design/high-fidelity/ai-advisor-plan-configurator-v1.png`
   - AI 办会顾问面板高保真结构参考。
   - 当前选定方向为“方案配置器”：客户侧可选择方案包、调整服务项、理解预算结构；运营侧可生成给 Chris 的结构化摘要。

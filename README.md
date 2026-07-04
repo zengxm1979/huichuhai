@@ -8,6 +8,8 @@
 
 - 原始 PRD：`docs/product/source/会出海-OutboundMICE-产品需求文档-v1.0.docx`
 - 平台设计规格：`docs/superpowers/specs/2026-07-04-huichuhai-platform-design.md`
+- 客户可见 / 运营内参字段矩阵：`docs/product/customer-internal-field-matrix.md`
+- MVP 实现计划：`docs/superpowers/plans/2026-07-04-huichuhai-mvp-implementation.md`
 - AI 顾问面板高保真结构参考：`docs/design/high-fidelity/ai-advisor-plan-configurator-v1.png`
 - AI 顾问面板 4 个关键状态稿：`docs/design/high-fidelity/ai-advisor-state-*.png`
 - 文档说明：`docs/README.md`

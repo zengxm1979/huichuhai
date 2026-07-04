@@ -99,6 +99,12 @@ export function buildAdvisorReply(summary: Partial<AdvisorRequirementSummary>) {
   return `收到，我先同步到需求摘要。还需要补充：${missing.join("、")}。可以直接说“地点在吉隆坡，120人，经销商大会，预算80-100万，需要物料和接送机”。`;
 }
 
+export function shouldAutoSubmitDraft(text: string, lastSubmittedText: string) {
+  const clean = text.trim();
+  if (!clean || clean === lastSubmittedText.trim()) return false;
+  return isRequirementReady(mergeRequirements(createInitialRequirementSummary(), extractRequirementsFromText(clean)));
+}
+
 export function getMissingFields(summary: Partial<AdvisorRequirementSummary>) {
   const missing: string[] = [];
   if (!summary.eventCity || summary.eventCity === "暂未确定") missing.push("会务地点");

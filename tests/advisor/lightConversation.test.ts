@@ -3,6 +3,7 @@ import {
   extractRequirementsFromText,
   isRequirementReady,
   mergeRequirements,
+  shouldAutoSubmitDraft,
 } from "@/lib/advisor/lightConversation";
 
 describe("light advisor conversation", () => {
@@ -51,5 +52,13 @@ describe("light advisor conversation", () => {
         requestedServices: [],
       }),
     ).toBe(false);
+  });
+
+  it("auto-submits a sufficient typed draft only once", () => {
+    const draft = "地点在吉隆坡，120人，经销商大会，预算80-100万，需要物料和接送机";
+
+    expect(shouldAutoSubmitDraft(draft, "")).toBe(true);
+    expect(shouldAutoSubmitDraft(draft, draft)).toBe(false);
+    expect(shouldAutoSubmitDraft("地点在吉隆坡，120人", "")).toBe(false);
   });
 });

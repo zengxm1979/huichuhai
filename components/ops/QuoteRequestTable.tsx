@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment, type ReactNode } from "react";
 import type { InquiryQuoteRequest, ResourceMaster } from "@/lib/resources/types";
 
 const availabilityLabel: Record<InquiryQuoteRequest["availabilityStatus"], string> = {
@@ -19,12 +20,16 @@ const quoteStatusLabel: Record<InquiryQuoteRequest["quoteStatus"], string> = {
 };
 
 export function QuoteRequestTable({
+  expandedRequestId,
   onUpdate,
   quoteRequests,
+  renderExpandedRow,
   resources,
 }: {
+  expandedRequestId?: string;
   onUpdate?: (request: InquiryQuoteRequest) => void;
   quoteRequests: InquiryQuoteRequest[];
+  renderExpandedRow?: (request: InquiryQuoteRequest) => ReactNode;
   resources: ResourceMaster[];
 }) {
   const resourceById = new Map(resources.map((resource) => [resource.id, resource]));
@@ -55,52 +60,61 @@ export function QuoteRequestTable({
               const resource = resourceById.get(request.resourceMasterId);
 
               return (
-                <tr className="border-b border-line last:border-0" key={request.id}>
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-ink">{request.companyName}</p>
-                    <p className="mt-1 text-xs text-ocean/55">{request.customerName}</p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-ink">{request.eventType}</p>
-                    <p className="mt-1 text-xs text-ocean/55">
-                      {request.eventDateStart} - {request.eventDateEnd} · {request.attendeeCount} 人
-                    </p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-ink">{resource?.resourceName ?? request.resourceMasterId}</p>
-                    <p className="mt-1 text-xs text-ocean/55">{request.quoteRequestType}</p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className="rounded-ui bg-teal/10 px-2 py-1 text-xs font-semibold text-teal">
-                      {availabilityLabel[request.availabilityStatus]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className="rounded-ui bg-gold/15 px-2 py-1 text-xs font-semibold text-ink">
-                      {quoteStatusLabel[request.quoteStatus]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    {request.quotedPriceMin && request.quotedPriceMax ? (
-                      <p className="font-semibold text-ink">
-                        {request.currency} {request.quotedPriceMin.toLocaleString("zh-CN")} -{" "}
-                        {request.quotedPriceMax.toLocaleString("zh-CN")}
-                      </p>
-                    ) : (
-                      <p className="font-semibold text-ocean/60">等待供应商确认</p>
-                    )}
-                    <p className="mt-1 text-xs text-ocean/55">{request.expiresAt ? `有效至 ${request.expiresAt}` : "未出有效期"}</p>
-                  </td>
-                  <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.supplierResponseSummary}</td>
-                  <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.operatorFollowupNote}</td>
-                  {onUpdate ? (
+                <Fragment key={request.id}>
+                  <tr className="border-b border-line last:border-0">
                     <td className="px-4 py-4">
-                      <button className="rounded-ui bg-gold px-3 py-2 text-xs font-semibold text-ink" onClick={() => onUpdate(request)} type="button">
-                        更新询价
-                      </button>
+                      <p className="font-semibold text-ink">{request.companyName}</p>
+                      <p className="mt-1 text-xs text-ocean/55">{request.customerName}</p>
                     </td>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold text-ink">{request.eventType}</p>
+                      <p className="mt-1 text-xs text-ocean/55">
+                        {request.eventDateStart} - {request.eventDateEnd} · {request.attendeeCount} 人
+                      </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold text-ink">{resource?.resourceName ?? request.resourceMasterId}</p>
+                      <p className="mt-1 text-xs text-ocean/55">{request.quoteRequestType}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="rounded-ui bg-teal/10 px-2 py-1 text-xs font-semibold text-teal">
+                        {availabilityLabel[request.availabilityStatus]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="rounded-ui bg-gold/15 px-2 py-1 text-xs font-semibold text-ink">
+                        {quoteStatusLabel[request.quoteStatus]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      {request.quotedPriceMin && request.quotedPriceMax ? (
+                        <p className="font-semibold text-ink">
+                          {request.currency} {request.quotedPriceMin.toLocaleString("zh-CN")} -{" "}
+                          {request.quotedPriceMax.toLocaleString("zh-CN")}
+                        </p>
+                      ) : (
+                        <p className="font-semibold text-ocean/60">等待供应商确认</p>
+                      )}
+                      <p className="mt-1 text-xs text-ocean/55">{request.expiresAt ? `有效至 ${request.expiresAt}` : "未出有效期"}</p>
+                    </td>
+                    <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.supplierResponseSummary}</td>
+                    <td className="max-w-[260px] px-4 py-4 text-ocean/70">{request.operatorFollowupNote}</td>
+                    {onUpdate ? (
+                      <td className="px-4 py-4">
+                        <button className="rounded-ui bg-gold px-3 py-2 text-xs font-semibold text-ink" onClick={() => onUpdate(request)} type="button">
+                          更新询价
+                        </button>
+                      </td>
+                    ) : null}
+                  </tr>
+                  {expandedRequestId === request.id && renderExpandedRow ? (
+                    <tr className="border-b border-line bg-gold/5">
+                      <td className="px-4 py-4" colSpan={onUpdate ? 9 : 8}>
+                        {renderExpandedRow(request)}
+                      </td>
+                    </tr>
                   ) : null}
-                </tr>
+                </Fragment>
               );
             })}
           </tbody>

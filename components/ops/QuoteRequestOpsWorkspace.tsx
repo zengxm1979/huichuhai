@@ -98,9 +98,15 @@ export function QuoteRequestOpsWorkspace({
       {notice ? <p className="rounded-ui border border-teal/20 bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">{notice}</p> : null}
 
       {creating ? <CreateQuoteRequestForm onCancel={() => setCreating(false)} onCreate={createQuoteRequest} resources={resources} /> : null}
-      {editing ? <UpdateQuoteRequestForm onCancel={() => setEditing(null)} onUpdate={updateQuoteRequest} request={editing} /> : null}
-
-      <QuoteRequestTable onUpdate={setEditing} quoteRequests={quoteRequests} resources={resources} />
+      <QuoteRequestTable
+        expandedRequestId={editing?.id}
+        onUpdate={setEditing}
+        quoteRequests={quoteRequests}
+        renderExpandedRow={(request) => (
+          <UpdateQuoteRequestForm onCancel={() => setEditing(null)} onUpdate={updateQuoteRequest} request={request} />
+        )}
+        resources={resources}
+      />
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
   getMissingFields,
   isRequirementReady,
   mergeRequirements,
+  shouldAutoSubmitDraft,
   summaryToDisplayRows,
   type AdvisorRequirementSummary,
   type LightChatMessage,
@@ -62,6 +63,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
   const [selectedTier, setSelectedTier] = useState<PackageTierId>(initialTier);
   const [services, setServices] = useState(() => normalizeServices(state.serviceSelections));
   const [input, setInput] = useState("");
+  const [lastSubmittedText, setLastSubmittedText] = useState("");
   const [draftInquiry, setDraftInquiry] = useState(state.inquiry);
   const [requirementSummary, setRequirementSummary] = useState<AdvisorRequirementSummary>(() => summaryFromInquiry(state.inquiry));
   const [messages, setMessages] = useState<LightChatMessage[]>([
@@ -114,7 +116,29 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
     const next = mergeRequirements(requirementSummary, extractRequirementsFromText(clean));
     applySummary(next);
     setMessages((current) => [...current, { role: "customer", text: clean }, { role: "advisor", text: buildAdvisorReply(next) }]);
+    setLastSubmittedText(clean);
     setInput("");
+  }
+
+  function handleInputChange(value: string) {
+    setInput(value);
+    const patch = extractRequirementsFromText(value);
+    const next = mergeRequirements(requirementSummary, patch);
+
+    if (Object.keys(patch).length > 0) {
+      applySummary(next);
+    }
+
+    if (shouldAutoSubmitDraft(value, lastSubmittedText)) {
+      const clean = value.trim();
+      setMessages((current) =>
+        current.some((message) => message.role === "customer" && message.text === clean)
+          ? current
+          : [...current, { role: "customer", text: clean }, { role: "advisor", text: buildAdvisorReply(next) }],
+      );
+      setLastSubmittedText(clean);
+      setInput("");
+    }
   }
 
   function selectCity(city: string) {
@@ -183,7 +207,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
               configurationHref={configurationHref}
               messages={messages}
               onCitySelect={selectCity}
-              onInput={setInput}
+              onInput={handleInputChange}
               onSend={sendMessage}
               ready={readyForConfiguration}
               summary={requirementSummary}

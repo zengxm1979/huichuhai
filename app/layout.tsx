@@ -1,0 +1,16 @@
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "会出海 | 东南亚企业办会服务",
+  description:
+    "帮中国企业在东南亚，把一场会办得更省心。首站马来西亚，提供精选场地、中文沟通和本地执行支持。",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="zh-CN">
+      <body>{children}</body>
+    </html>
+  );
+}

@@ -65,13 +65,21 @@ export function HomePageSections() {
           <div className="mt-6 grid gap-4 md:grid-cols-[repeat(4,minmax(0,1fr))_260px]">
             {featuredVenues.map((venue) => (
               <article className="overflow-hidden rounded-ui border border-line bg-white shadow-sm" key={venue.name}>
-                <img alt={`${venue.name}示例图`} className="h-36 w-full object-cover" src={venue.image} />
-                <div className="p-4">
+                <img alt={`${venue.name}公开图片`} className="h-36 w-full object-cover" src={venue.image} />
+                <div className="flex min-h-64 flex-col p-4">
                   <h3 className="font-semibold text-ink">{venue.name}</h3>
-                  <p className="mt-2 text-sm text-ocean/75">
-                    {venue.city} · {venue.capacity}
-                  </p>
-                  <p className="mt-3 text-sm font-semibold text-ink">{venue.price}</p>
+                  <p className="mt-2 text-sm font-semibold text-ocean/80">{venue.city}</p>
+                  <p className="mt-2 text-sm leading-6 text-ocean/75">{venue.address}</p>
+                  <p className="mt-3 text-sm font-semibold text-ink">{venue.capacity}</p>
+                  <p className="mt-2 text-xs leading-5 text-ocean/65">{venue.price}</p>
+                  <a
+                    className="mt-auto inline-flex pt-4 text-xs font-semibold text-teal"
+                    href={venue.sourceUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    查看公开来源
+                  </a>
                 </div>
               </article>
             ))}

@@ -33,36 +33,44 @@ export const serviceScenarios = [
 
 export const featuredVenues = [
   {
-    name: "吉隆坡会议中心 KLCC [MOCK]",
+    name: "Kuala Lumpur Convention Centre",
     city: "吉隆坡",
-    capacity: "最大约 1,500 人",
-    price: "RM [MOCK] 80,000 起/天",
+    capacity: "Plenary Hall 约 2,991 人",
+    address: "Kuala Lumpur City Centre, 50088 Kuala Lumpur",
+    price: "场租与餐饮需按日期和配置询价",
+    sourceUrl: "https://www.klccconventioncentre.com/about/about-the-centre",
     image:
-      "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=900&q=80",
+      "https://www.klccconventioncentre.com/clients/asset_1DC34A5E-8086-475D-9583-2A8A0CD6CFA6/contentMS/img/social/social-klcc-01_2.jpg",
   },
   {
-    name: "吉隆坡悦榕酒店 [MOCK]",
+    name: "Banyan Tree Kuala Lumpur",
     city: "吉隆坡",
-    capacity: "最大约 800 人",
-    price: "RM [MOCK] 65,000 起/天",
+    capacity: "Boardroom / 私享活动约 10-15 人",
+    address: "2 Jalan Conlay, 50450 Kuala Lumpur",
+    price: "会议室与餐饮需向酒店询价",
+    sourceUrl: "https://www.banyantree.com/malaysia/kuala-lumpur",
     image:
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
   },
   {
-    name: "万豪酒店 Putrajaya [MOCK]",
-    city: "布城",
-    capacity: "最大约 600 人",
-    price: "RM [MOCK] 50,000 起/天",
+    name: "Putrajaya Marriott Hotel",
+    city: "布城 / Sepang Utara",
+    capacity: "MPICC 最大约 2,300 人",
+    address: "IOI Resort City, Sepang Utara, 62502",
+    price: "会议空间与住宿需按方案询价",
+    sourceUrl: "https://www.marriott.com/en-us/hotels/kulpg-putrajaya-marriott-hotel/events/",
     image:
       "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=900&q=80",
   },
   {
-    name: "槟城 Gurney 度假酒店 [MOCK]",
+    name: "G Hotel Gurney",
     city: "槟城",
-    capacity: "最大约 500 人",
-    price: "RM [MOCK] 45,000 起/天",
+    capacity: "Grand Ballroom 最高约 700 人",
+    address: "168A Persiaran Gurney, 10250 Penang",
+    price: "宴会与会议套餐需向酒店询价",
+    sourceUrl: "https://gurney.ghotel.com.my/meetings",
     image:
-      "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80",
+      "https://gurney.ghotel.com.my/assets/images/meetings/ballroom/foyer-01.jpg",
   },
 ];
 

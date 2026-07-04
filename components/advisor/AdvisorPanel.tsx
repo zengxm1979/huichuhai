@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
-  Bot,
   CheckCircle2,
   Circle,
   Minus,
@@ -13,6 +12,7 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import {
   advisorCityOptions,
   buildAdvisorReply,
@@ -173,13 +173,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
         <div className="mx-auto max-w-7xl px-5 py-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link className="flex items-center gap-3" href="/">
-              <span className="grid h-10 w-10 place-items-center rounded-ui border border-gold/50 bg-gold/15 font-semibold text-gold">
-                会
-              </span>
-              <span>
-                <span className="block text-lg font-semibold">会出海</span>
-                <span className="text-sm text-gold">AI 办会顾问</span>
-              </span>
+              <BrandLogo className="h-12 w-[164px]" priority tone="light" />
             </Link>
             <div className="flex flex-wrap gap-2 rounded-ui bg-white/8 p-1">
               {tabs.map((tab) => (
@@ -195,9 +189,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
               ))}
             </div>
             <div className="flex items-center gap-3 rounded-ui border border-teal/50 px-4 py-2">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#f3c679,#1aa6a6_45%,#061d32_72%)]">
-                <Bot size={20} />
-              </div>
+              <BrandLogo className="h-10 w-10 rounded-ui bg-white p-1" variant="mark" />
               <div>
                 <p className="font-semibold text-teal">AI 办会顾问</p>
                 <p className="text-xs text-white/65">抽象数字顾问形象</p>

@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bot, CheckCircle2, MessageCircle, Send, X } from "lucide-react";
+import { CheckCircle2, Send, X } from "lucide-react";
 import { ADVISOR_OPEN_EVENT } from "@/components/advisor/OpenAdvisorButton";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
 import { mergeAgentPayloadIntoSummary, requestAdvisorAgentTurn } from "@/lib/agent/client";
 import type { CustomerAgentTurnPayload } from "@/lib/agent/schemas";
@@ -98,7 +99,7 @@ export function AdvisorLightChat() {
         onClick={() => setOpen(true)}
         type="button"
       >
-        <MessageCircle size={18} />
+        <BrandLogo className="h-7 w-7" variant="mark" />
         AI 顾问
       </button>
 
@@ -107,9 +108,7 @@ export function AdvisorLightChat() {
           <aside className="ml-auto flex h-full w-full max-w-[430px] flex-col bg-white shadow-soft">
             <header className="flex items-center justify-between border-b border-line bg-ink px-5 py-4 text-white">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#f3c679,#1aa6a6_45%,#061d32_72%)]">
-                  <Bot size={20} />
-                </span>
+                <BrandLogo className="h-10 w-10 rounded-ui bg-white p-1" variant="mark" />
                 <div>
                   <p className="font-semibold">AI 办会顾问</p>
                   <p className="text-xs text-white/60">先回答方向，再收窄配置 [MOCK]</p>

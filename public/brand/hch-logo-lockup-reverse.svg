@@ -1,0 +1,14 @@
+<svg width="328" height="96" viewBox="0 0 328 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">HCH 会出海 reverse logo</title>
+  <desc id="desc">Phase-1 interim reverse HCH brand lockup for dark backgrounds.</desc>
+  <rect width="328" height="96" rx="0" fill="transparent"/>
+  <g fill="#F7FAF8">
+    <path d="M22 18h13v22h21V18h13v56H56V51H35v23H22V18Z"/>
+    <path d="M151 18h13v22h21V18h13v56h-13V51h-21v23h-13V18Z"/>
+  </g>
+  <path d="M123.5 30.5C118.8 24.6 111.7 21 103.5 21C88.8 21 78 32.1 78 46C78 60.2 88.9 71 103.5 71C111.9 71 119 67.2 123.7 61.1" stroke="#F7FAF8" stroke-width="12" stroke-linecap="square"/>
+  <path d="M95 47C104.8 40.5 113.7 38.9 124 44.9" stroke="#5CB7AD" stroke-width="5" stroke-linecap="square"/>
+  <path d="M96 52C105.7 58.2 114.8 59.2 124.5 52.9" stroke="#5CB7AD" stroke-width="5" stroke-linecap="square"/>
+  <text x="218" y="42" fill="#F7FAF8" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="22" font-weight="700" letter-spacing="1.5">会出海</text>
+  <text x="218" y="66" fill="#9ED1CB" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="4">HUI CHU HAI</text>
+</svg>

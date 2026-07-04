@@ -1,0 +1,12 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">HCH app icon</title>
+  <desc id="desc">Phase-1 interim HCH app icon candidate.</desc>
+  <rect width="192" height="192" rx="28" fill="#06243A"/>
+  <g fill="#F7FAF8">
+    <path d="M28 50h17v39h28V50h17v96H73v-41H45v41H28V50Z"/>
+    <path d="M111 50h17v39h28V50h17v96h-17v-41h-28v41h-17V50Z"/>
+  </g>
+  <path d="M117 71C110.8 64.7 102.8 61 93.8 61C76.2 61 63 76.4 63 98C63 119.9 76.4 135 93.8 135C103 135 111.2 131 117.4 124.1" stroke="#F7FAF8" stroke-width="16" stroke-linecap="square"/>
+  <path d="M81 96C93.6 87.9 104.9 86.6 118 94.2" stroke="#5CB7AD" stroke-width="7" stroke-linecap="square"/>
+  <path d="M82 104C94.4 111.4 105.5 112.5 118.4 105.1" stroke="#5CB7AD" stroke-width="7" stroke-linecap="square"/>
+</svg>

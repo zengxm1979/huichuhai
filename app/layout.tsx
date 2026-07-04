@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "会出海 | 东南亚企业办会服务",
   description:
     "帮中国企业在东南亚，把一场会办得更省心。首站马来西亚，提供精选场地、中文沟通和本地执行支持。",
+  icons: {
+    icon: "/brand/hch-app-icon.svg",
+    apple: "/brand/hch-app-icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

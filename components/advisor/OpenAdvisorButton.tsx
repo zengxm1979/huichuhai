@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MessageCircle } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export const ADVISOR_OPEN_EVENT = "huichuhai:open-advisor";
 
@@ -20,7 +20,7 @@ export function OpenAdvisorButton({
 }) {
   return (
     <button className={className} onClick={openAdvisorDrawer} type="button">
-      {showIcon ? <MessageCircle size={16} /> : null}
+      {showIcon ? <BrandLogo className="h-5 w-5" variant="mark" /> : null}
       {children}
     </button>
   );

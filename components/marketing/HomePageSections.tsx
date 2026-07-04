@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, BadgeCheck, Building2, CheckCircle2, ShieldCheck } from "lucide-react";
 import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { faqs, featuredVenues, materialSupport, serviceScenarios } from "@/content/site";
 
 export function HomePageSections() {
@@ -17,7 +18,7 @@ export function HomePageSections() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/20" />
         <div className="relative mx-auto flex min-h-[620px] max-w-7xl flex-col justify-center px-5 py-20">
-          <p className="text-sm font-semibold tracking-[0.28em] text-gold">会出海 · HUI CHU HAI</p>
+          <BrandLogo className="h-12 w-[164px]" priority tone="light" />
           <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
             帮中国企业在东南亚，把一场会办得更省心
           </h1>
@@ -99,7 +100,7 @@ export function HomePageSections() {
         <div className="mx-auto max-w-7xl px-5">
           <div className="grid items-center gap-8 rounded-ui bg-ink p-8 text-white md:grid-cols-[1fr_320px]">
             <div className="flex items-center gap-6">
-              <div className="hidden h-28 w-28 rounded-full border border-teal/50 bg-[radial-gradient(circle_at_35%_25%,#8ee7e7,#0b3a4b_48%,#061d32)] md:block" />
+              <BrandLogo className="hidden h-20 w-20 rounded-ui bg-white p-2 md:block" variant="mark" />
               <div>
                 <p className="text-sm font-semibold tracking-[0.2em] text-gold">AI ADVISOR</p>
                 <h2 className="mt-2 text-3xl font-semibold">AI 办会顾问</h2>

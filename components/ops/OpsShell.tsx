@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 const opsLinks = [
   { href: "/ops/leads", label: "AI 线索" },
@@ -15,11 +16,9 @@ export function OpsShell({ children, title }: { children: ReactNode; title: stri
       <header className="bg-ink text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-ui bg-gold text-lg font-semibold text-ink">
-              Ops
-            </span>
+            <BrandLogo className="h-11 w-11 rounded-ui bg-white p-1" tone="dark" variant="mark" />
             <div>
-              <p className="text-lg font-semibold">会出海 Ops</p>
+              <p className="text-lg font-semibold">HCH 会出海 Ops</p>
               <p className="text-sm text-white/60">内部运营视图 · 不向客户展示</p>
             </div>
           </div>

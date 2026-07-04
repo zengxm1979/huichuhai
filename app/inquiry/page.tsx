@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { InquiryForm } from "@/components/inquiry/InquiryForm";
@@ -33,6 +34,7 @@ export default function InquiryPage() {
               </div>
             </section>
             <section className="rounded-ui bg-ink p-5 text-white shadow-sm">
+              <BrandLogo className="h-10 w-10 rounded-ui bg-white p-1" variant="mark" />
               <h2 className="text-lg font-semibold">提交前可先问 AI 顾问</h2>
               <p className="mt-3 text-sm leading-7 text-white/70">
                 预算、服务项或方案包不确定时，先生成一版参考预算结构，再提交给顾问询价确认。

@@ -1,19 +1,14 @@
 import Link from "next/link";
 import { CalendarCheck } from "lucide-react";
 import { OpenAdvisorButton } from "@/components/advisor/OpenAdvisorButton";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-ink text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
         <Link className="flex items-center gap-3" href="/">
-          <span className="grid h-9 w-9 place-items-center rounded-ui border border-gold/50 bg-gold/15 text-lg font-bold text-gold">
-            会
-          </span>
-          <span>
-            <span className="block text-lg font-semibold">会出海</span>
-            <span className="block text-[11px] uppercase tracking-[0.24em] text-white/55">Hui Chu Hai</span>
-          </span>
+          <BrandLogo className="h-12 w-[164px]" priority tone="light" />
         </Link>
         <nav className="hidden items-center gap-7 text-sm text-white/80 md:flex">
           <Link href="/">首页</Link>

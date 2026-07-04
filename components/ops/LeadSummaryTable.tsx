@@ -2,7 +2,7 @@ import type { InternalAdvisorState } from "@/lib/advisor/types";
 
 export function LeadSummaryTable({ lead }: { lead: InternalAdvisorState }) {
   const rows = [
-    ["客户/公司", lead.inquiry.company ?? "未填写"],
+    ["客户 / 公司", lead.inquiry.company ?? "未填写"],
     ["活动类型", lead.inquiry.eventType ?? "未填写"],
     ["城市", lead.inquiry.city ?? "未填写"],
     ["人数", lead.inquiry.attendeeCount ? `${lead.inquiry.attendeeCount} 人` : "未填写"],
@@ -72,7 +72,7 @@ export function LeadSummaryTable({ lead }: { lead: InternalAdvisorState }) {
 }
 
 const priorityLabel: Record<InternalAdvisorState["internal"]["leadPriority"], string> = {
-  urgent: "高优先级 · 紧急",
+  urgent: "高优先级 / 紧急",
   high: "高优先级",
   medium: "中优先级",
   low: "低优先级",

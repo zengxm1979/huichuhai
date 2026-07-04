@@ -11,6 +11,7 @@
 - 不把该域名写死到品牌文案或长期对外材料中
 - 不开启搜索引擎收录
 - 当前默认不加密码 / Basic Auth，避免增加客户审核摩擦
+- 内部 `/ops/*` 页面使用审核阶段密码门禁，不对客户公开
 
 ## 已完成部署进展
 
@@ -22,6 +23,7 @@
   - `NEXT_PUBLIC_SITE_INDEXABLE`
   - `NEXT_PUBLIC_SITE_URL`
   - `OPS_PREVIEW_TOKEN`
+  - `OPS_REVIEW_PASSWORD`
 - 已使用当前本地 `codex/huichuhai-mvp-d` 代码执行 production deploy。
 - Production deployment：`https://huichuhai-gh8mysb6n-ideaegg.vercel.app`
 - Vercel alias：`https://huichuhai.vercel.app`
@@ -61,8 +63,8 @@
 ### 审核站访问策略
 
 - 默认：`noindex + nofollow + robots Disallow + 空 sitemap`
-- 当前不默认加密码 / Basic Auth
-- 如客户明确要求限制访问，再追加访问保护
+- 客户侧审核站不加 Basic Auth，避免增加客户审核摩擦
+- `/ops/*` 内部运营页使用 Phase 1 审核密码门禁；这不是正式账号体系
 
 ### 环境变量默认值
 
@@ -70,9 +72,10 @@
 NEXT_PUBLIC_SITE_INDEXABLE=false
 NEXT_PUBLIC_SITE_URL=https://hch.ideaegg.com.cn
 OPS_PREVIEW_TOKEN=hch-review-202607
+OPS_REVIEW_PASSWORD=<由运营方单独提供>
 ```
 
-`OPS_PREVIEW_TOKEN` 必须通过环境变量注入。当前代码仅保留 `hch-review-202607` 作为审核阶段 fallback，不再使用旧值。
+`OPS_PREVIEW_TOKEN` 与 `OPS_REVIEW_PASSWORD` 必须通过环境变量注入。当前代码保留 token 兼容旧验收链接，但运营人员主路径应使用 `/ops/login` 密码登录。
 
 ## Noindex / Nofollow 实现
 
@@ -103,7 +106,7 @@ NEXT_PUBLIC_SITE_INDEXABLE=false
 - `npm run build`
 - 标准 Next.js 输出，无需自定义 output 目录
 - 当前不依赖真实 Supabase、AI API、短信、邮件或登录系统即可启动
-- `/ops/*` 页面已有 token 预览保护
+- `/ops/*` 页面已有审核密码门禁，并保留 token 兼容旧验收链接
 - 品牌运行资产已改为设计线程批准 PNG
 - 已新增 `robots.ts` / `sitemap.ts`
 - 已新增 `.env.example`
@@ -133,6 +136,7 @@ NEXT_PUBLIC_SITE_INDEXABLE=false
 NEXT_PUBLIC_SITE_INDEXABLE=false
 NEXT_PUBLIC_SITE_URL=https://hch.ideaegg.com.cn
 OPS_PREVIEW_TOKEN=hch-review-202607
+OPS_REVIEW_PASSWORD=<由运营方单独提供>
 ```
 
 未来真实服务接入再补：
@@ -194,8 +198,10 @@ project=huichuhai
 - 首页 metadata 仍为 `noindex,nofollow`
 - `/robots.txt` 返回 `Disallow: /`
 - `/sitemap.xml` 返回空 `urlset`
-- 新 token 可访问 `/ops/leads`
-- 旧 token 返回 404
+- 新 token 可访问 `/ops/leads`，作为旧验收链接兼容
+- 无登录 cookie 且无有效 token 时，会重定向到 `/ops/login`
+- 旧 token 不再直进内部页，应重定向到 `/ops/login`
+- `/ops/login` 作为运营人员主入口，登录后进入 `/ops/resources`
 
 ## 已可直接执行项
 
@@ -233,8 +239,9 @@ project=huichuhai
 - `/robots.txt` 为 `Disallow: /`。
 - 页面 metadata robots 为 `noindex,nofollow`。
 - `/sitemap.xml` 为空。
-- `/ops/*` 无 token 仍不可访问。
-- `/ops/*?token=hch-review-202607` 可用于内部审核。
+- `/ops/*` 未登录时重定向到 `/ops/login`。
+- `/ops/login` 正确密码登录后可进入 `/ops/resources`。
+- `/ops/*?token=hch-review-202607` 保留为内部验收兼容路径，不作为运营人员主入口。
 
 ## 面向客户审核交付清单
 

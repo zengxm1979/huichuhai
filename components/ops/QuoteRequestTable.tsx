@@ -69,7 +69,7 @@ export function QuoteRequestTable({
                     <td className="px-4 py-4">
                       <p className="font-semibold text-ink">{request.eventType}</p>
                       <p className="mt-1 text-xs text-ocean/55">
-                        {request.eventDateStart} - {request.eventDateEnd} · {request.attendeeCount} 人
+                        {request.eventDateStart} - {request.eventDateEnd} / {request.attendeeCount} 人
                       </p>
                     </td>
                     <td className="px-4 py-4">

@@ -1,12 +1,9 @@
-import { notFound } from "next/navigation";
 import { ResourceOpsWorkspace } from "@/components/ops/ResourceOpsWorkspace";
 import { OpsShell } from "@/components/ops/OpsShell";
 import { mockResources } from "@/content/mockResources";
-import { getOpsPreviewToken } from "@/lib/deployment/reviewAccess";
+import { requireOpsAccess } from "@/lib/deployment/opsServerAccess";
 
 export const dynamic = "force-dynamic";
-
-const previewToken = getOpsPreviewToken();
 
 export default async function OpsResourcesPage({
   searchParams,
@@ -14,10 +11,7 @@ export default async function OpsResourcesPage({
   searchParams: Promise<{ token?: string }>;
 }) {
   const params = await searchParams;
-
-  if (params.token !== previewToken) {
-    notFound();
-  }
+  await requireOpsAccess("/ops/resources", params.token);
 
   return (
     <OpsShell title="资源主档">

@@ -32,15 +32,15 @@ export function QuoteRequestOpsWorkspace({
     const next: InquiryQuoteRequest = {
       id: `qr_ops_${Date.now()}_mock`,
       inquiryId: `inq_ops_${Date.now()}_mock`,
-      customerName: `${String(formData.get("customerName") || "客户待确认")} [MOCK]`,
-      companyName: `${String(formData.get("companyName") || "公司待确认")} [MOCK]`,
+      customerName: withMockLabel(String(formData.get("customerName") || "客户待确认")),
+      companyName: withMockLabel(String(formData.get("companyName") || "公司待确认")),
       resourceMasterId,
       quoteRequestType: String(formData.get("quoteRequestType") || "venue_availability") as QuoteRequestType,
-      eventType: `${String(formData.get("eventType") || "商务会议")} [MOCK]`,
+      eventType: withMockLabel(String(formData.get("eventType") || "商务会议")),
       eventDateStart: String(formData.get("eventDateStart") || "2026-09-18"),
       eventDateEnd: String(formData.get("eventDateEnd") || "2026-09-18"),
       attendeeCount: Number(formData.get("attendeeCount") || 100),
-      customerBudgetRange: `${String(formData.get("customerBudgetRange") || "80-100万")} [MOCK]`,
+      customerBudgetRange: withMockLabel(String(formData.get("customerBudgetRange") || "80-100万")),
       requestedServices: [resource?.resourceName ?? "资源待确认 [MOCK]"],
       availabilityStatus: "waiting_supplier",
       currency: resource?.currency ?? "MYR",
@@ -69,9 +69,9 @@ export function QuoteRequestOpsWorkspace({
       quoteStatus: String(formData.get("quoteStatus")) as InquiryQuoteRequest["quoteStatus"],
       quotedPriceMin: quotedPriceMin || undefined,
       quotedPriceMax: quotedPriceMax || undefined,
-      supplierResponseSummary: `${String(formData.get("supplierResponseSummary") || editing.supplierResponseSummary)} [MOCK]`,
-      operatorFollowupNote: `${String(formData.get("operatorFollowupNote") || editing.operatorFollowupNote)} [MOCK]`,
-      seasonalityNote: `${String(formData.get("seasonalityNote") || editing.seasonalityNote)} [MOCK]`,
+      supplierResponseSummary: withMockLabel(String(formData.get("supplierResponseSummary") || editing.supplierResponseSummary)),
+      operatorFollowupNote: withMockLabel(String(formData.get("operatorFollowupNote") || editing.operatorFollowupNote)),
+      seasonalityNote: withMockLabel(String(formData.get("seasonalityNote") || editing.seasonalityNote)),
       quotedBy: "Ops mock user [MOCK]",
       quotedAt: new Date().toISOString(),
       expiresAt: String(formData.get("expiresAt") || editing.expiresAt || ""),
@@ -214,14 +214,14 @@ function UpdateQuoteRequestForm({
         <Field label="有效期" name="expiresAt" type="datetime-local" />
         <Field label="报价下限" name="quotedPriceMin" type="number" defaultValue={String(request.quotedPriceMin ?? "")} />
         <Field label="报价上限" name="quotedPriceMax" type="number" defaultValue={String(request.quotedPriceMax ?? "")} />
-        <Field label="淡旺季说明" name="seasonalityNote" defaultValue={request.seasonalityNote.replace(" [MOCK]", "")} />
-        <label className="md:col-span-3 grid gap-2 text-sm font-semibold text-ink">
+        <Field label="淡旺季说明" name="seasonalityNote" defaultValue={stripMockLabel(request.seasonalityNote)} />
+        <label className="grid gap-2 text-sm font-semibold text-ink md:col-span-3">
           供应商摘要
-          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={request.supplierResponseSummary.replace(" [MOCK]", "")} name="supplierResponseSummary" />
+          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={stripMockLabel(request.supplierResponseSummary)} name="supplierResponseSummary" />
         </label>
-        <label className="md:col-span-3 grid gap-2 text-sm font-semibold text-ink">
+        <label className="grid gap-2 text-sm font-semibold text-ink md:col-span-3">
           运营跟进
-          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={request.operatorFollowupNote.replace(" [MOCK]", "")} name="operatorFollowupNote" />
+          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={stripMockLabel(request.operatorFollowupNote)} name="operatorFollowupNote" />
         </label>
       </div>
       <button className="mt-5 rounded-ui bg-gold px-4 py-3 text-sm font-semibold text-ink" type="submit">
@@ -248,4 +248,12 @@ function Field({
       <input className="rounded-ui border border-line px-3 py-2 font-normal" defaultValue={defaultValue} name={name} type={type} />
     </label>
   );
+}
+
+function withMockLabel(value: string) {
+  return value.includes("[MOCK]") ? value : `${value} [MOCK]`;
+}
+
+function stripMockLabel(value?: string) {
+  return value?.replace(" [MOCK]", "");
 }

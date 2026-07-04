@@ -5,9 +5,9 @@ import type { ResourceMaster } from "@/lib/resources/types";
 const resourceTypeLabel: Record<ResourceMaster["resourceType"], string> = {
   venue: "场地",
   banquet: "晚宴",
-  materials: "物料",
+  materials: "会议物料",
   av: "AV/舞台",
-  transfer: "接送",
+  transfer: "接送机",
   accommodation: "住宿",
   interpretation: "同传",
   photo_video: "摄影摄像",
@@ -32,7 +32,7 @@ export function ResourceTable({
     <section className="overflow-hidden rounded-ui border border-line bg-white">
       <div className="border-b border-line p-5">
         <h2 className="text-xl font-semibold text-ink">资源主档 resource_master [MOCK]</h2>
-        <p className="mt-2 text-sm text-ocean/70">长期合作资源、参考报价区间、适用条件和内部合作备注。</p>
+        <p className="mt-2 text-sm text-ocean/70">长期合作资源、参考报价区间、适用条件和内部合作备注。参考价不是正式报价。</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1180px] border-collapse text-sm">

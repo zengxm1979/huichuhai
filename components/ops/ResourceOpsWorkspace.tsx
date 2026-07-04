@@ -7,9 +7,9 @@ import type { ResourceMaster, ResourceType } from "@/lib/resources/types";
 const resourceTypes: Array<{ value: ResourceType; label: string }> = [
   { value: "venue", label: "场地" },
   { value: "banquet", label: "晚宴" },
-  { value: "materials", label: "物料" },
+  { value: "materials", label: "会议物料" },
   { value: "av", label: "AV/舞台" },
-  { value: "transfer", label: "接送" },
+  { value: "transfer", label: "接送机" },
   { value: "accommodation", label: "住宿" },
   { value: "interpretation", label: "同传" },
   { value: "photo_video", label: "摄影摄像" },
@@ -40,18 +40,22 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
 
   function saveResource(formData: FormData) {
     const now = new Date().toISOString().slice(0, 10);
+    const resourceName = String(formData.get("resourceName") || "新增资源").trim();
+    const supplierName = String(formData.get("supplierName") || "供应商待确认").trim();
+    const priceScopeNote = String(formData.get("priceScopeNote") || "参考范围需按本次活动询价确认").trim();
+
     const next: ResourceMaster = {
       ...(selected ?? resources[0]),
       id: selected?.id ?? `res_mock_${Date.now()}`,
       resourceType: String(formData.get("resourceType")) as ResourceType,
-      resourceName: `${String(formData.get("resourceName") || "新增资源")} [MOCK]`,
-      supplierName: `${String(formData.get("supplierName") || "供应商待确认")} [MOCK]`,
+      resourceName: withMockLabel(resourceName),
+      supplierName: withMockLabel(supplierName),
       city: String(formData.get("city") || "吉隆坡"),
       district: String(formData.get("district") || "待确认"),
       referencePriceMin: Number(formData.get("referencePriceMin") || 0),
       referencePriceMax: Number(formData.get("referencePriceMax") || 0),
       pricingUnit: String(formData.get("pricingUnit") || "项目"),
-      priceScopeNote: `${String(formData.get("priceScopeNote") || "参考范围需按本次活动询价确认")} [MOCK]`,
+      priceScopeNote: withMockLabel(priceScopeNote),
       requiresQuoteConfirmation: formData.get("requiresQuoteConfirmation") === "on",
       agreementStatus: String(formData.get("agreementStatus") || "mock") as ResourceMaster["agreementStatus"],
       lastVerifiedAt: now,
@@ -65,7 +69,8 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
       minimumOrderRequirement: selected?.minimumOrderRequirement ?? "最低消费或起订条件待确认 [MOCK]",
       leadTimeRequirement: selected?.leadTimeRequirement ?? "建议提前 30-90 天确认 [MOCK]",
       strategicCooperationLevel: selected?.strategicCooperationLevel ?? "candidate",
-      customerVisibleSummary: selected?.customerVisibleSummary ?? "客户侧仅展示参考范围，正式价格需本次询价确认 [MOCK]",
+      customerVisibleSummary:
+        selected?.customerVisibleSummary ?? "客户侧仅展示参考范围，正式价格需本次询价确认 [MOCK]",
       internalNegotiationNote: selected?.internalNegotiationNote ?? "内部谈判备注待补充 [MOCK]",
       internalRiskNote: selected?.internalRiskNote ?? "内部风险备注待补充 [MOCK]",
     };
@@ -82,10 +87,7 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
     const eventType = String(formData.get("eventType") || "商务会议 [MOCK]");
     const eventDate = String(formData.get("eventDate") || "日期待确认");
     setActivity((items) =>
-      [
-        `已从资源 ${selected.resourceName} 发起当次询价：${customerName} / ${eventType} / ${eventDate} [MOCK]`,
-        ...items,
-      ].slice(0, 5),
+      [`已从资源 ${selected.resourceName} 发起当次询价：${customerName} / ${eventType} / ${eventDate} [MOCK]`, ...items].slice(0, 5),
     );
     setMode(null);
   }
@@ -95,8 +97,10 @@ export function ResourceOpsWorkspace({ initialResources }: { initialResources: R
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-ui border border-line bg-white p-5">
         <div>
           <p className="text-sm font-semibold tracking-[0.18em] text-gold">RESOURCE OPS</p>
-          <h2 className="mt-1 text-xl font-semibold text-ink">资源主档维护</h2>
-          <p className="mt-2 text-sm text-ocean/70">这里维护战略合作资源和参考条件，不覆盖当次客户临时报价。</p>
+          <h2 className="mt-1 text-xl font-semibold text-ink">会务资源录入与主档维护</h2>
+          <p className="mt-2 text-sm text-ocean/70">
+            审核预览 / MOCK。这里用于 Chris / 运营审核资源主档结构与录入流程，不代表真实资源库已落库。
+          </p>
         </div>
         <button className="rounded-ui bg-gold px-4 py-3 text-sm font-semibold text-ink" onClick={openNew} type="button">
           新建资源
@@ -149,8 +153,8 @@ function ResourceForm({
         </button>
       </div>
       <div className="mt-4 grid gap-4 md:grid-cols-3">
-        <Field label="资源名称" name="resourceName" defaultValue={resource?.resourceName.replace(" [MOCK]", "")} />
-        <Field label="供应商名称" name="supplierName" defaultValue={resource?.supplierName.replace(" [MOCK]", "")} />
+        <Field label="资源名称" name="resourceName" defaultValue={stripMockLabel(resource?.resourceName)} />
+        <Field label="供应商名称" name="supplierName" defaultValue={stripMockLabel(resource?.supplierName)} />
         <label className="grid gap-2 text-sm font-semibold text-ink">
           资源类型
           <select className="rounded-ui border border-line px-3 py-2 font-normal" defaultValue={resource?.resourceType ?? "venue"} name="resourceType">
@@ -175,9 +179,9 @@ function ResourceForm({
             <option value="mock">mock</option>
           </select>
         </label>
-        <label className="md:col-span-3 grid gap-2 text-sm font-semibold text-ink">
+        <label className="grid gap-2 text-sm font-semibold text-ink md:col-span-3">
           适用条件 / 参考价说明
-          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={resource?.priceScopeNote} name="priceScopeNote" />
+          <textarea className="min-h-20 rounded-ui border border-line px-3 py-2 font-normal" defaultValue={stripMockLabel(resource?.priceScopeNote)} name="priceScopeNote" />
         </label>
         <label className="flex items-center gap-2 text-sm font-semibold text-ink">
           <input defaultChecked={resource?.requiresQuoteConfirmation ?? true} name="requiresQuoteConfirmation" type="checkbox" />
@@ -241,4 +245,12 @@ function Field({
       <input className="rounded-ui border border-line px-3 py-2 font-normal" defaultValue={defaultValue} name={name} type={type} />
     </label>
   );
+}
+
+function withMockLabel(value: string) {
+  return value.includes("[MOCK]") ? value : `${value} [MOCK]`;
+}
+
+function stripMockLabel(value?: string) {
+  return value?.replace(" [MOCK]", "");
 }

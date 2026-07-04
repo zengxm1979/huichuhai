@@ -1,7 +1,22 @@
+import { notFound } from "next/navigation";
 import { LeadSummaryTable } from "@/components/ops/LeadSummaryTable";
 import { internalLeadState } from "@/lib/advisor/mockAdvisorFlow";
 
-export default function OpsLeadsPage() {
+export const dynamic = "force-dynamic";
+
+const previewToken = process.env.OPS_PREVIEW_TOKEN ?? "huichuhai-ops-preview";
+
+export default async function OpsLeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) {
+  const params = await searchParams;
+
+  if (params.token !== previewToken) {
+    notFound();
+  }
+
   return (
     <main className="min-h-screen bg-cloud">
       <header className="bg-ink text-white">

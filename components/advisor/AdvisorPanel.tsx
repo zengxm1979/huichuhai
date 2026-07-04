@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
+  Bot,
   CheckCircle2,
   Circle,
   Minus,
@@ -9,8 +13,8 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
-import { getPackageTiers } from "@/lib/advisor/mockAdvisorFlow";
-import type { AdvisorStep, CustomerAdvisorState, ServiceSelectionStatus } from "@/lib/advisor/types";
+import { PACKAGE_TIERS, type PackageTierId, type PackageTierLabel } from "@/lib/constants/packageTiers";
+import type { AdvisorStep, CustomerAdvisorState, ServiceSelection, ServiceSelectionStatus } from "@/lib/advisor/types";
 
 const tabs: Array<{ key: AdvisorStep; label: string }> = [
   { key: "initial", label: "初始咨询" },
@@ -19,7 +23,81 @@ const tabs: Array<{ key: AdvisorStep; label: string }> = [
   { key: "submit", label: "提交顾问确认" },
 ];
 
+const tierConfig: Record<PackageTierId, { label: PackageTierLabel; multiplier: number; summary: string; confirmations: string[] }> = {
+  economy: {
+    label: "经济型",
+    multiplier: 0.78,
+    summary: "经济型会保留场地、基础茶歇、必要 AV 和核心物料，优先压缩晚宴、住宿和影像配置。",
+    confirmations: ["基础 AV 是否够用", "物料范围", "是否保留晚宴"],
+  },
+  standard: {
+    label: "标准型",
+    multiplier: 1,
+    summary: "标准型覆盖会议、晚宴、住宿、交通和物料，适合大多数经销商大会和企业活动。",
+    confirmations: ["酒店档期", "晚宴菜单", "付款与合同条款"],
+  },
+  premium: {
+    label: "高配型",
+    multiplier: 1.28,
+    summary: "高配型会强化品牌呈现、现场体验和接待配置，适合发布会、重要客户活动和高规格会议。",
+    confirmations: ["品牌视觉规格", "贵宾接待动线", "高配 AV 与舞台方案"],
+  },
+};
+
+type ChatMessage = {
+  role: "advisor" | "customer";
+  text: string;
+};
+
 export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
+  const initialTier = getTierId(state.inquiry.selectedPackage);
+  const [selectedTier, setSelectedTier] = useState<PackageTierId>(initialTier);
+  const [services, setServices] = useState(() => normalizeServices(state.serviceSelections));
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: "advisor",
+      text: "您好，我是会出海 AI 办会顾问。可以先告诉我活动类型、人数、城市、时间和预算范围，我会先整理一版可调整方案。[MOCK]",
+    },
+  ]);
+
+  const budget = useMemo(() => calculateBudget(services, selectedTier), [services, selectedTier]);
+  const selectedTierConfig = tierConfig[selectedTier];
+  const currentSummary =
+    state.step === "budgetMismatch"
+      ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问协助压缩供应商报价。"
+      : selectedTierConfig.summary;
+
+  function adjustService(id: string, direction: "up" | "down") {
+    setServices((current) =>
+      current.map((service) => {
+        if (service.id !== id) return service;
+        const nextQuantity =
+          direction === "up" ? service.quantity + quantityStep(service) : Math.max(0, service.quantity - quantityStep(service));
+
+        return {
+          ...service,
+          quantity: nextQuantity,
+          selectionStatus: nextQuantity === 0 ? "removed" : nextQuantity < service.originalQuantity ? "optional" : "selected",
+        };
+      }),
+    );
+  }
+
+  function sendMessage(text = input) {
+    const clean = text.trim();
+    if (!clean) return;
+    setMessages((current) => [
+      ...current,
+      { role: "customer", text: clean },
+      {
+        role: "advisor",
+        text: "收到。我会把这条补充同步到需求摘要，并优先检查场地、预算和需要人工确认的事项。[MOCK]",
+      },
+    ]);
+    setInput("");
+  }
+
   return (
     <main className="min-h-screen bg-cloud">
       <section className="bg-ink text-white">
@@ -48,7 +126,9 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
               ))}
             </div>
             <div className="flex items-center gap-3 rounded-ui border border-teal/50 px-4 py-2">
-              <div className="h-10 w-10 rounded-full bg-[radial-gradient(circle_at_35%_30%,#f3c679,#1aa6a6_45%,#061d32_72%)]" />
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#f3c679,#1aa6a6_45%,#061d32_72%)]">
+                <Bot size={20} />
+              </div>
               <div>
                 <p className="font-semibold text-teal">AI 办会顾问</p>
                 <p className="text-xs text-white/65">抽象数字顾问形象</p>
@@ -69,10 +149,21 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <HeroState state={state} />
-          <PackageSelector selected={state.inquiry.selectedPackage ?? "标准型"} />
-          {state.step === "initial" ? <InitialConsultation /> : <ServiceSelectionTable state={state} />}
+          {state.step === "initial" ? (
+            <InitialConsultation input={input} messages={messages} onInput={setInput} onSend={sendMessage} />
+          ) : null}
+          <PackageSelector onSelect={setSelectedTier} selected={selectedTier} />
+          {state.step !== "initial" ? (
+            <ServiceSelectionTable onAdjust={adjustService} services={services} tier={selectedTier} />
+          ) : null}
         </div>
-        <BudgetSidePanel state={state} />
+        <BudgetSidePanel
+          budget={budget}
+          currentSummary={currentSummary}
+          selectedTier={selectedTier}
+          services={services}
+          state={state}
+        />
       </section>
     </main>
   );
@@ -116,70 +207,112 @@ function HeroState({ state }: { state: CustomerAdvisorState }) {
   );
 }
 
-function PackageSelector({ selected }: { selected: string }) {
+function PackageSelector({ onSelect, selected }: { onSelect: (tier: PackageTierId) => void; selected: PackageTierId }) {
   return (
     <section className="rounded-ui border border-line bg-white p-5">
       <div className="flex items-end justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-ink">选择方案包</h2>
-          <p className="mt-1 text-sm text-ocean/70">对比不同方案的服务配置与预算范围</p>
+          <p className="mt-1 text-sm text-ocean/70">切换后会联动预算区间、服务建议和待确认事项。</p>
         </div>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
-        {getPackageTiers().map((tier) => (
-          <div
-            className={`rounded-ui border p-4 ${
-              selected === tier.label ? "border-teal bg-teal/10" : "border-line bg-white"
+        {PACKAGE_TIERS.map((tier) => (
+          <button
+            className={`rounded-ui border p-4 text-left transition ${
+              selected === tier.id ? "border-teal bg-teal/10" : "border-line bg-white hover:border-teal/50"
             }`}
             key={tier.id}
+            onClick={() => onSelect(tier.id)}
+            type="button"
           >
             <div className="flex items-center gap-3">
-              {selected === tier.label ? <CheckCircle2 className="text-teal" size={20} /> : <Circle className="text-ocean/35" size={20} />}
+              {selected === tier.id ? <CheckCircle2 className="text-teal" size={20} /> : <Circle className="text-ocean/35" size={20} />}
               <p className="font-semibold text-ink">{tier.label}</p>
             </div>
             <p className="mt-2 text-sm leading-6 text-ocean/70">{tier.description}</p>
-          </div>
+          </button>
         ))}
       </div>
     </section>
   );
 }
 
-function InitialConsultation() {
+function InitialConsultation({
+  input,
+  messages,
+  onInput,
+  onSend,
+}: {
+  input: string;
+  messages: ChatMessage[];
+  onInput: (value: string) => void;
+  onSend: (value?: string) => void;
+}) {
   return (
-    <section className="grid gap-4 rounded-ui border border-line bg-white p-5 md:grid-cols-[1fr_260px]">
+    <section className="grid gap-4 rounded-ui border border-line bg-white p-5 md:grid-cols-[1fr_280px]">
       <div>
-        <h2 className="text-xl font-semibold text-ink">快速咨询</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-ocean/75">
-          可以先从活动类型、人数、城市、预算范围开始。AI 会生成一个可调整的服务项清单，再交由顾问确认档期和正式报价。
-        </p>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {["我想办经销商大会", "我想找 200 人场地", "我想问档期和报价", "我想了解付款和合同"].map((item) => (
-            <Link className="rounded-ui border border-line px-4 py-3 text-sm font-semibold text-ink" href="/advisor?state=configuration" key={item}>
-              {item}
-            </Link>
+        <h2 className="text-xl font-semibold text-ink">顾问对话</h2>
+        <div className="mt-4 grid max-h-[360px] gap-3 overflow-y-auto rounded-ui bg-cloud p-4">
+          {messages.map((message, index) => (
+            <div
+              className={`max-w-[86%] rounded-ui px-4 py-3 text-sm leading-6 ${
+                message.role === "advisor" ? "bg-white text-ink" : "ml-auto bg-teal text-white"
+              }`}
+              key={`${message.role}-${index}`}
+            >
+              {message.text}
+            </div>
           ))}
+        </div>
+        <div className="mt-4 flex gap-2">
+          <input
+            className="min-w-0 flex-1 rounded-ui border border-line px-3 py-3 text-sm outline-none focus:border-teal"
+            onChange={(event) => onInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") onSend();
+            }}
+            placeholder="输入活动类型、人数、城市、预算或特殊需求"
+            value={input}
+          />
+          <button className="rounded-ui bg-gold px-4 py-3 font-semibold text-ink" onClick={() => onSend()} type="button">
+            发送
+          </button>
         </div>
       </div>
       <div className="rounded-ui bg-ink p-5 text-white">
         <Sparkles className="text-gold" />
-        <p className="mt-3 font-semibold">建议先补充</p>
-        <ul className="mt-3 space-y-2 text-sm text-white/70">
-          <li>活动类型</li>
-          <li>预计人数</li>
-          <li>城市和时间</li>
-          <li>预算范围</li>
-        </ul>
+        <p className="mt-3 font-semibold">快捷补充</p>
+        <div className="mt-3 grid gap-2">
+          {["我想办经销商大会，约120人", "预算希望控制在80-100万", "需要会议物料和接送机", "想先看标准型方案"].map((item) => (
+            <button
+              className="rounded-ui border border-white/20 px-3 py-2 text-left text-sm text-white/80"
+              key={item}
+              onClick={() => onSend(item)}
+              type="button"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function ServiceSelectionTable({ state }: { state: CustomerAdvisorState }) {
+function ServiceSelectionTable({
+  onAdjust,
+  services,
+  tier,
+}: {
+  onAdjust: (id: string, direction: "up" | "down") => void;
+  services: InteractiveService[];
+  tier: PackageTierId;
+}) {
   return (
     <section className="rounded-ui border border-line bg-white p-5">
       <h2 className="text-xl font-semibold text-ink">服务项取舍</h2>
-      <p className="mt-1 text-sm text-ocean/70">可按需开启或调整服务内容，金额为预算结构估算，不是正式报价。</p>
+      <p className="mt-1 text-sm text-ocean/70">点击 + / - 会调整数量、状态和右侧预算摘要。金额为预算结构估算，不是正式报价。</p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-sm">
           <thead>
@@ -193,7 +326,7 @@ function ServiceSelectionTable({ state }: { state: CustomerAdvisorState }) {
             </tr>
           </thead>
           <tbody>
-            {state.serviceSelections.map((service) => (
+            {services.map((service) => (
               <tr className="border-b border-line last:border-0" key={service.id}>
                 <td className="py-3 font-semibold text-ink">{service.category}</td>
                 <td>
@@ -202,14 +335,24 @@ function ServiceSelectionTable({ state }: { state: CustomerAdvisorState }) {
                 <td>
                   {service.quantity} {service.unit}
                 </td>
-                <td>{formatRange(service.subtotalMin, service.subtotalMax)}</td>
+                <td>{formatRange(service, tier)}</td>
                 <td className="max-w-[260px] text-ocean/70">{service.tradeoffNote}</td>
                 <td>
                   <div className="flex w-fit items-center rounded-ui border border-line">
-                    <button className="px-2 py-1" type="button">
+                    <button
+                      aria-label={`减少${service.category}`}
+                      className="px-2 py-1"
+                      onClick={() => onAdjust(service.id, "down")}
+                      type="button"
+                    >
                       <Minus size={14} />
                     </button>
-                    <button className="border-l border-line px-2 py-1" type="button">
+                    <button
+                      aria-label={`增加${service.category}`}
+                      className="border-l border-line px-2 py-1"
+                      onClick={() => onAdjust(service.id, "up")}
+                      type="button"
+                    >
                       <Plus size={14} />
                     </button>
                   </div>
@@ -223,42 +366,52 @@ function ServiceSelectionTable({ state }: { state: CustomerAdvisorState }) {
   );
 }
 
-function BudgetSidePanel({ state }: { state: CustomerAdvisorState }) {
-  const estimate = state.budgetEstimate;
+function BudgetSidePanel({
+  budget,
+  currentSummary,
+  selectedTier,
+  services,
+  state,
+}: {
+  budget: { min: number; max: number; coverage: number };
+  currentSummary: string;
+  selectedTier: PackageTierId;
+  services: InteractiveService[];
+  state: CustomerAdvisorState;
+}) {
+  const confirmations = Array.from(
+    new Set([
+      ...tierConfig[selectedTier].confirmations,
+      ...services.filter((service) => service.requiresHumanConfirmation && service.quantity > 0).slice(0, 3).map((service) => service.category),
+    ]),
+  ).slice(0, 5);
 
   return (
     <aside className="space-y-4">
       <section className="rounded-ui bg-ink p-5 text-white">
-        <p className="border-l-4 border-gold pl-3 text-lg font-semibold">{estimate?.title ?? "预算结构待生成"}</p>
-        {estimate ? (
-          <>
-            <p className="mt-6 text-sm text-white/65">总预算估算（含税）</p>
-            <p className="mt-2 text-4xl font-semibold text-gold">
-              ¥ {Math.round(estimate.totalMin / 10000)} - {Math.round(estimate.totalMax / 10000)} 万
-            </p>
-            <p className="mt-4 text-sm leading-7 text-white/75">{estimate.customerMatchSummary}</p>
-            <div className="mt-5 h-2 rounded-full bg-white/15">
-              <div className="h-2 rounded-full bg-teal" style={{ width: state.step === "budgetMismatch" ? "68%" : "90%" }} />
-            </div>
-          </>
-        ) : (
-          <p className="mt-4 text-sm leading-7 text-white/70">补充活动信息后生成预算结构。</p>
-        )}
+        <p className="border-l-4 border-gold pl-3 text-lg font-semibold">预算结构估算（{tierConfig[selectedTier].label}）</p>
+        <p className="mt-6 text-sm text-white/65">总预算估算（含税）</p>
+        <p className="mt-2 text-4xl font-semibold text-gold">
+          ¥ {Math.round(budget.min / 10000)} - {Math.round(budget.max / 10000)} 万
+        </p>
+        <p className="mt-4 text-sm leading-7 text-white/75">{currentSummary}</p>
+        <div className="mt-5 h-2 rounded-full bg-white/15">
+          <div className="h-2 rounded-full bg-teal transition-all" style={{ width: `${budget.coverage}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-white/55">预算覆盖度 {budget.coverage}% · 正式报价需顾问确认</p>
       </section>
 
-      {estimate ? (
-        <section className="rounded-ui border border-line bg-white p-5">
-          <h3 className="font-semibold text-ink">需要顾问确认</h3>
-          <ul className="mt-3 space-y-2 text-sm text-ocean/75">
-            {estimate.requiresHumanConfirmation.map((item) => (
-              <li className="flex items-center gap-2" key={item}>
-                <AlertTriangle className="text-gold" size={16} />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <section className="rounded-ui border border-line bg-white p-5">
+        <h3 className="font-semibold text-ink">需要顾问确认</h3>
+        <ul className="mt-3 space-y-2 text-sm text-ocean/75">
+          {confirmations.map((item) => (
+            <li className="flex items-center gap-2" key={item}>
+              <AlertTriangle className="text-gold" size={16} />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="rounded-ui border border-line bg-white p-5">
         <h3 className="font-semibold text-ink">下一步</h3>
@@ -294,7 +447,51 @@ function StatusBadge({ status }: { status: ServiceSelectionStatus }) {
   return <span className="rounded-ui bg-teal/10 px-2 py-1 text-xs font-semibold text-teal">{label[status]}</span>;
 }
 
-function formatRange(min?: number, max?: number) {
-  if (!min || !max) return "待确认";
+type InteractiveService = ServiceSelection & {
+  originalQuantity: number;
+  unitMin: number;
+  unitMax: number;
+};
+
+function normalizeServices(services: ServiceSelection[]): InteractiveService[] {
+  return services.map((service) => ({
+    ...service,
+    originalQuantity: service.quantity,
+    unitMin: service.quantity > 0 ? (service.subtotalMin ?? 0) / service.quantity : 0,
+    unitMax: service.quantity > 0 ? (service.subtotalMax ?? 0) / service.quantity : 0,
+  }));
+}
+
+function calculateBudget(services: InteractiveService[], tier: PackageTierId) {
+  const multiplier = tierConfig[tier].multiplier;
+  const selected = services.filter((service) => service.quantity > 0);
+  const min = selected.reduce((sum, service) => sum + service.unitMin * service.quantity * multiplier, 0);
+  const max = selected.reduce((sum, service) => sum + service.unitMax * service.quantity * multiplier, 0);
+  const coverageBase = tier === "economy" ? 78 : tier === "standard" ? 90 : 96;
+  const removedPenalty = services.filter((service) => service.quantity === 0).length * 4;
+
+  return {
+    min: Math.round(min),
+    max: Math.round(max),
+    coverage: Math.max(35, Math.min(98, coverageBase - removedPenalty)),
+  };
+}
+
+function formatRange(service: InteractiveService, tier: PackageTierId) {
+  if (service.quantity === 0) return "已移除";
+  const multiplier = tierConfig[tier].multiplier;
+  const min = Math.round(service.unitMin * service.quantity * multiplier);
+  const max = Math.round(service.unitMax * service.quantity * multiplier);
   return `¥${min.toLocaleString("zh-CN")} - ${max.toLocaleString("zh-CN")}`;
+}
+
+function quantityStep(service: InteractiveService) {
+  if (service.unit === "人") return 10;
+  if (service.unit === "间夜") return 10;
+  return 1;
+}
+
+function getTierId(label?: CustomerAdvisorState["inquiry"]["selectedPackage"]): PackageTierId {
+  const found = PACKAGE_TIERS.find((tier) => tier.label === label);
+  return found?.id ?? "standard";
 }

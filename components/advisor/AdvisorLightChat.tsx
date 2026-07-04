@@ -9,9 +9,9 @@ import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
 import {
   advisorCityOptions,
   buildAdvisorReply,
+  consultationProgress,
   createInitialRequirementSummary,
   extractRequirementsFromText,
-  getMissingFields,
   isRequirementReady,
   mergeRequirements,
   summaryToDisplayRows,
@@ -21,7 +21,7 @@ import {
 
 const initialMessage: LightChatMessage = {
   role: "advisor",
-  text: "您好，我是会出海 AI 办会顾问。先告诉我会务地点、人数、活动类型和预算，我会先整理需求摘要，再进入方案配置。[MOCK]",
+  text: "您好，我是会出海 AI 办会顾问。你可以先问城市适不适合、活动方向怎么做，或告诉我一个初步想法；我会先给建议，再一起收窄到可执行方案。[MOCK]",
 };
 
 export function AdvisorLightChat() {
@@ -34,7 +34,6 @@ export function AdvisorLightChat() {
 
   const ready = useMemo(() => isRequirementReady(summary), [summary]);
   const configurationHref = useMemo(() => buildAdvisorConfigurationHref(summary), [summary]);
-  const missingFields = useMemo(() => getMissingFields(summary), [summary]);
   const displayRows = useMemo(() => summaryToDisplayRows(summary), [summary]);
 
   useEffect(() => {
@@ -57,7 +56,7 @@ export function AdvisorLightChat() {
       setMessages((items) => [
         ...items,
         { role: "customer", text: clean },
-        { role: "advisor", text: buildAdvisorReply(next) },
+        { role: "advisor", text: buildAdvisorReply(next, clean) },
       ]);
       return next;
     });
@@ -100,7 +99,7 @@ export function AdvisorLightChat() {
                 </span>
                 <div>
                   <p className="font-semibold">AI 办会顾问</p>
-                  <p className="text-xs text-white/60">先收集需求，再进入方案配置 [MOCK]</p>
+                  <p className="text-xs text-white/60">先回答方向，再收窄配置 [MOCK]</p>
                 </div>
               </div>
               <button className="rounded-ui p-2 text-white/70 hover:bg-white/10" onClick={() => setOpen(false)} type="button">
@@ -129,9 +128,9 @@ export function AdvisorLightChat() {
             <div className="grid gap-4 overflow-y-auto px-5 py-4">
               <section className="rounded-ui border border-line bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="font-semibold text-ink">需求摘要</h2>
+                  <h2 className="font-semibold text-ink">咨询进度 / 轻摘要</h2>
                   <span className="rounded-ui bg-gold/15 px-2 py-1 text-xs font-semibold text-ocean">
-                    {ready ? "可进入配置" : `待补充：${missingFields.join("、")}`}
+                    {consultationProgress(summary)}
                   </span>
                 </div>
                 <div className="mt-3 grid gap-2 text-sm">
@@ -176,7 +175,7 @@ export function AdvisorLightChat() {
                   onKeyDown={(event) => {
                     if (event.key === "Enter") applyCustomerText(input);
                   }}
-                  placeholder="例如：地点在吉隆坡，120人，经销商大会，预算80-100万"
+                  placeholder="例如：我想到新山举办投资大会，有什么建议的方案吗？"
                   value={input}
                 />
                 <button className="rounded-ui bg-ink px-4 py-3 text-white" onClick={() => applyCustomerText(input)} type="button">

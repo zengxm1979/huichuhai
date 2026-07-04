@@ -3,6 +3,7 @@ export type AdvisorRequirementSummary = {
   eventType?: string;
   attendeeCount?: number;
   budgetRange?: string;
+  consultationFocus?: string;
   requestedServices: string[];
   eventDate?: string;
   locationFlexibility?: "locked" | "flexible" | "undecided";
@@ -49,6 +50,9 @@ export function extractRequirementsFromText(text: string): Partial<AdvisorRequir
   const eventType = extractEventType(clean);
   if (eventType) patch.eventType = eventType;
 
+  const consultationFocus = extractConsultationFocus(clean);
+  if (consultationFocus) patch.consultationFocus = consultationFocus;
+
   const budgetRange = extractBudgetRange(clean);
   if (budgetRange) patch.budgetRange = budgetRange;
 
@@ -70,6 +74,7 @@ export function mergeRequirements(
     eventType: patch.eventType ?? current.eventType,
     attendeeCount: patch.attendeeCount ?? current.attendeeCount,
     budgetRange: patch.budgetRange ?? current.budgetRange,
+    consultationFocus: patch.consultationFocus ?? current.consultationFocus,
     eventDate: patch.eventDate ?? current.eventDate,
     locationFlexibility: patch.locationFlexibility ?? current.locationFlexibility,
     requestedServices: unique([...(current.requestedServices ?? []), ...(patch.requestedServices ?? [])]),
@@ -86,7 +91,7 @@ export function isRequirementReady(summary: Partial<AdvisorRequirementSummary>) 
   );
 }
 
-export function buildAdvisorReply(summary: Partial<AdvisorRequirementSummary>) {
+export function buildAdvisorReply(summary: Partial<AdvisorRequirementSummary>, sourceText = "") {
   if (isRequirementReady(summary)) {
     const services =
       summary.requestedServices && summary.requestedServices.length > 0
@@ -95,8 +100,14 @@ export function buildAdvisorReply(summary: Partial<AdvisorRequirementSummary>) {
     return `收到。已整理 ${summary.eventCity} / ${summary.attendeeCount}人 / ${summary.eventType} / 预算${summary.budgetRange}${services}。信息已足够进入方案配置。预算只作为参考范围，正式价格、档期、付款和取消条款需基于本次询价确认。`;
   }
 
-  const missing = getMissingFields(summary);
-  return `收到，我先同步到需求摘要。还需要补充：${missing.join("、")}。可以直接说“地点在吉隆坡，120人，经销商大会，预算80-100万，需要物料和接送机”。`;
+  if (isJohorInvestmentConsultation(summary, sourceText)) {
+    return "可以，新山适合做投资大会的轻商务版本：它靠近新加坡，便于跨境来宾往返，也适合把投资交流、项目路演和产业园区/企业考察串起来。建议先看三个方向：1. 本地商务接待型，适合政府、园区或合作伙伴交流；2. 跨境考察联动型，适合安排新山会场加企业/园区走访；3. 小型闭门交流型，适合投资人、项目方和核心客户深度对接。你这次更偏投资交流、项目路演，还是客户接待型活动？";
+  }
+
+  const knownContext = [summary.eventCity, summary.eventType].filter(Boolean).join(" / ");
+  return knownContext
+    ? `收到，先按 ${knownContext} 做方向判断。我们可以先比较活动定位、城市适配和大致服务组合，再决定是否进入预算配置。你更想先看城市差异，还是先看这个地点可以怎么做？`
+    : "可以，我先帮你判断办会方向。你可以先告诉我目标城市或活动意图，我会先给适合的方案方向，再一起收窄到人数、预算和资源配置。";
 }
 
 export function shouldAutoSubmitDraft(text: string, lastSubmittedText: string) {
@@ -116,15 +127,19 @@ export function getMissingFields(summary: Partial<AdvisorRequirementSummary>) {
 
 export function summaryToDisplayRows(summary: Partial<AdvisorRequirementSummary>) {
   return [
-    { label: "会务地点", value: summary.eventCity ?? "待确认" },
-    { label: "活动类型", value: summary.eventType ?? "待确认" },
-    { label: "预计人数", value: summary.attendeeCount ? `${summary.attendeeCount} 人` : "待确认" },
-    { label: "预算范围", value: summary.budgetRange ?? "待确认" },
-    {
-      label: "服务项",
-      value: summary.requestedServices?.length ? summary.requestedServices.join("、") : "待确认",
-    },
+    { label: "咨询进度", value: consultationProgress(summary) },
+    { label: "活动意图", value: summary.eventType ?? "待确认" },
+    { label: "倾向地点", value: summary.eventCity ?? "待确认" },
+    { label: "关注重点", value: summary.consultationFocus ?? (summary.requestedServices?.length ? summary.requestedServices.join("、") : "待确认") },
+    { label: "大致规模", value: summary.attendeeCount ? `${summary.attendeeCount} 人` : "待确认" },
   ];
+}
+
+export function consultationProgress(summary: Partial<AdvisorRequirementSummary>) {
+  if (isRequirementReady(summary)) return "可整理配置";
+  if (summary.eventCity && summary.eventType) return "方向比较中";
+  if (summary.eventCity || summary.eventType || summary.consultationFocus) return "初步判断中";
+  return "初步咨询中";
 }
 
 function extractCity(text: string) {
@@ -143,6 +158,7 @@ function extractAttendeeCount(text: string) {
 }
 
 function extractEventType(text: string) {
+  if (/投资|招商|路演/.test(text)) return "投资大会";
   if (/经销商|渠道|代理商/.test(text)) return "经销商大会";
   if (/年会/.test(text)) return "企业年会";
   if (/发布|发布会|新品/.test(text)) return "新品发布会";
@@ -150,6 +166,17 @@ function extractEventType(text: string) {
   if (/晚宴|答谢宴/.test(text)) return "商务晚宴";
   if (/会议|大会|峰会|论坛/.test(text)) return "商务会议";
   return undefined;
+}
+
+function extractConsultationFocus(text: string) {
+  if (/投资|招商|路演/.test(text)) return "投资交流 / 项目路演";
+  if (/考察|参访|走访/.test(text)) return "考察联动";
+  if (/接待|客户/.test(text)) return "客户接待";
+  return undefined;
+}
+
+function isJohorInvestmentConsultation(summary: Partial<AdvisorRequirementSummary>, sourceText: string) {
+  return summary.eventCity === "新山" && summary.eventType === "投资大会" && /建议|方案|怎么|如何|适合|可以/.test(sourceText);
 }
 
 function extractBudgetRange(text: string) {

@@ -1,4 +1,4 @@
-# 会出海独立站部署准备状态
+# 会出海独立站部署准备与审核站状态
 
 日期：2026-07-05
 
@@ -12,6 +12,31 @@
 - 不开启搜索引擎收录
 - 当前默认不加密码 / Basic Auth，避免增加客户审核摩擦
 
+## 已完成部署进展
+
+- 本地目录已通过 Vercel CLI 链接到 Vercel 项目：`ideaegg/huichuhai`
+- Vercel 项目配置已确认：
+  - Framework Preset：Next.js
+  - Root Directory：`.`
+- 环境变量已存在于 Production / Preview：
+  - `NEXT_PUBLIC_SITE_INDEXABLE`
+  - `NEXT_PUBLIC_SITE_URL`
+  - `OPS_PREVIEW_TOKEN`
+- 已使用当前本地 `codex/huichuhai-mvp-d` 代码执行 production deploy。
+- Production deployment：`https://huichuhai-gh8mysb6n-ideaegg.vercel.app`
+- Vercel alias：`https://huichuhai.vercel.app`
+- Vercel 自定义域名已添加到项目：`hch.ideaegg.com.cn`
+- 当前阻塞点：`hch.ideaegg.com.cn` 的 DNS 记录尚未配置，Vercel verify 尚未通过。
+
+## 已完成线上验收
+
+基于 `https://huichuhai.vercel.app`：
+
+- 首页 HTTP 200，页面包含 `noindex` / `会出海` / `HCH`
+- `/robots.txt` HTTP 200，内容为 `Disallow: /`
+- `/ops/leads?token=hch-review-202607` HTTP 200
+- 旧 token `huichuhai-ops-preview` HTTP 404
+
 ## 已确定部署决策
 
 ### 域名
@@ -24,6 +49,8 @@
 - 当前不要求先合并 `main`
 - 审核站部署来源：`codex/huichuhai-mvp-d`
 - Vercel Production Branch 临时设置为：`codex/huichuhai-mvp-d`
+- 本次 CLI production deploy 已使用当前本地代码完成，绕过了 `main` 的失败部署
+- 仍需在 Vercel UI 中确认 Production Branch 是否已切为 `codex/huichuhai-mvp-d`
 - 客户审核通过后，再决定是否切回 `main` 或正式生产分支
 
 ### 审核站访问策略
@@ -76,21 +103,22 @@ NEXT_PUBLIC_SITE_INDEXABLE=false
 - 已新增 `robots.ts` / `sitemap.ts`
 - 已新增 `.env.example`
 
-当前未配置：
+当前不需要：
 
 - `vercel.json`：暂不需要
-- `.vercel/`：需 Vercel 项目连接后生成或由 Vercel 托管
+- `.vercel/`：由 Vercel CLI 本地生成，已加入 `.gitignore`，不提交仓库
 
 ## Vercel 接入清单
 
 ### 项目配置
 
+- Project：`ideaegg/huichuhai`
 - Framework Preset：Next.js
-- Root Directory：仓库根目录
+- Root Directory：仓库根目录 `.`
 - Install Command：`npm install`
 - Build Command：`npm run build`
 - Output Directory：留空，由 Vercel 自动识别 Next.js
-- Production Branch：`codex/huichuhai-mvp-d`
+- Production Branch：`codex/huichuhai-mvp-d`，仍需在 Vercel UI 最终确认
 
 ### 环境变量
 
@@ -119,48 +147,84 @@ OPENAI_API_KEY=
 - Vercel Production Deployment：本阶段也只是审核站，仍保持 noindex。
 - 正式生产发布：只有在正式域名、真实信息和上线口径确认后，才考虑 `NEXT_PUBLIC_SITE_INDEXABLE=true`。
 
-## 阿里云 DNS CNAME 准备
+## 阿里云 DNS CNAME 待执行记录
 
-Vercel 项目中添加自定义域名：
+Vercel 项目中已添加自定义域名：
 
 ```text
 hch.ideaegg.com.cn
 ```
 
-Vercel 会给出 CNAME target。拿到 target 后，在阿里云执行：
+优先按 CNAME 配置：
+
+```text
+类型：CNAME
+主机记录：hch
+记录值：3c8709cf49652c4c.vercel-dns-017.com.
+```
+
+备选 A 记录，仅在 CNAME 方案不可用时使用：
+
+```text
+类型：A
+主机记录：hch
+记录值：76.76.21.21
+```
+
+阿里云 DNS 操作步骤：
 
 1. 进入 `ideaegg.com.cn` 的 DNS 解析控制台。
 2. 新增解析记录。
-3. 记录类型选择 `CNAME`。
+3. 记录类型优先选择 `CNAME`。
 4. 主机记录填写：`hch`
-5. 记录值填写 Vercel 提供的 CNAME target。
+5. 记录值填写：`3c8709cf49652c4c.vercel-dns-017.com.`
 6. TTL 使用默认值。
-7. 保存后回到 Vercel 点击 Verify。
-8. 等 HTTPS 证书自动签发完成后再交付客户访问。
+7. 保存后等待 DNS 生效。
+8. 回到 Vercel 执行 verify。
 
-不要提前写死或猜测 CNAME target。
+DNS 生效后执行：
+
+```bash
+npx vercel domains verify hch.ideaegg.com.cn --scope ideaegg
+```
+
+## DNS 生效后验收命令
+
+```bash
+curl -I https://hch.ideaegg.com.cn
+curl https://hch.ideaegg.com.cn/robots.txt
+curl -I "https://hch.ideaegg.com.cn/ops/leads?token=hch-review-202607"
+curl -I "https://hch.ideaegg.com.cn/ops/leads?token=huichuhai-ops-preview"
+```
+
+预期：
+
+- 首页 HTTP 200
+- 首页 metadata 仍为 `noindex,nofollow`
+- `/robots.txt` 返回 `Disallow: /`
+- 新 token 可访问 `/ops/leads`
+- 旧 token 返回 404
+- Header / footer / advisor / inquiry / ops 使用批准 PNG logo 资产
+- favicon / app icon 正常
 
 ## 已可直接执行项
 
-- 使用当前分支 `codex/huichuhai-mvp-d` 创建 Vercel 项目。
-- 设置 Vercel Production Branch 为 `codex/huichuhai-mvp-d`。
-- 设置审核环境变量。
-- 在 Vercel 添加自定义域名 `hch.ideaegg.com.cn`。
-- 拿到 Vercel CNAME target 后交给 DNS 权限持有人配置。
-- 用线上 URL 执行审核验收清单。
+- 在阿里云 DNS 写入 `hch` 的 CNAME 记录。
+- DNS 生效后执行 `npx vercel domains verify hch.ideaegg.com.cn --scope ideaegg`。
+- 用 `https://hch.ideaegg.com.cn` 执行线上验收清单。
+- 在 Vercel UI 中确认 Production Branch 是否为 `codex/huichuhai-mvp-d`。
 
 ## 需权限后执行项
 
-- Vercel 项目创建 / 管理权限。
-- GitHub 仓库 `zengxm1979/huichuhai` 导入权限。
 - `ideaegg.com.cn` 阿里云 DNS 权限。
-- Vercel 提供 CNAME target 后的 DNS 记录配置。
+- Vercel 项目 `ideaegg/huichuhai` 管理权限。
+- Vercel UI 中 Production Branch 设置确认权限。
 
 ## Blockers
 
-1. 谁持有 Vercel 项目创建 / 管理权限。
-2. 谁持有 `ideaegg.com.cn` 的阿里云 DNS 权限。
-3. Vercel 账号是否可直接导入 GitHub 仓库 `zengxm1979/huichuhai`。
+1. `hch.ideaegg.com.cn` DNS CNAME 尚未配置。
+2. Vercel UI 中 Production Branch 是否已切为 `codex/huichuhai-mvp-d` 尚待确认。
+3. 正式域名、正式 SEO 收录、真实服务接入仍待客户审核后确认。
 
 ## 上线后验收项
 
@@ -185,6 +249,7 @@ Vercel 会给出 CNAME target。拿到 target 后，在阿里云执行：
 交付客户前准备：
 
 - 审核 URL：`https://hch.ideaegg.com.cn`
+- 备用 Vercel URL：`https://huichuhai.vercel.app`
 - 审核说明：当前为客户审核站，非最终生产域名。
 - 页面清单：
   - `/`

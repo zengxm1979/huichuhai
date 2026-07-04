@@ -25,6 +25,7 @@ import {
   type AdvisorRequirementSummary,
   type LightChatMessage,
 } from "@/lib/advisor/lightConversation";
+import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
 import { PACKAGE_TIERS, type PackageTierId, type PackageTierLabel } from "@/lib/constants/packageTiers";
 import type { AdvisorStep, CustomerAdvisorState, ServiceSelection, ServiceSelectionStatus } from "@/lib/advisor/types";
 
@@ -73,6 +74,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
   const budget = useMemo(() => calculateBudget(services, selectedTier), [services, selectedTier]);
   const selectedTierConfig = tierConfig[selectedTier];
   const readyForConfiguration = isRequirementReady(requirementSummary);
+  const configurationHref = useMemo(() => buildAdvisorConfigurationHref(requirementSummary), [requirementSummary]);
   const currentSummary =
     state.step === "budgetMismatch"
       ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问基于本次询价确认资源价格和档期。"
@@ -178,6 +180,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
           {state.step === "initial" ? (
             <InitialConsultation
               input={input}
+              configurationHref={configurationHref}
               messages={messages}
               onCitySelect={selectCity}
               onInput={setInput}
@@ -192,7 +195,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
           ) : null}
         </div>
         {state.step === "initial" ? (
-          <InitialSummaryPanel ready={readyForConfiguration} summary={requirementSummary} />
+          <InitialSummaryPanel configurationHref={configurationHref} ready={readyForConfiguration} summary={requirementSummary} />
         ) : (
           <BudgetSidePanel
             budget={budget}
@@ -278,6 +281,7 @@ function PackageSelector({ onSelect, selected }: { onSelect: (tier: PackageTierI
 
 function InitialConsultation({
   input,
+  configurationHref,
   messages,
   onCitySelect,
   onInput,
@@ -286,6 +290,7 @@ function InitialConsultation({
   summary,
 }: {
   input: string;
+  configurationHref: string;
   messages: LightChatMessage[];
   onCitySelect: (city: string) => void;
   onInput: (value: string) => void;
@@ -299,7 +304,7 @@ function InitialConsultation({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-semibold text-ink">顾问对话</h2>
           {ready ? (
-            <Link className="rounded-ui bg-gold px-4 py-2 text-sm font-semibold text-ink" href="/advisor?state=configuration">
+            <Link className="rounded-ui bg-gold px-4 py-2 text-sm font-semibold text-ink" href={configurationHref}>
               进入方案配置
             </Link>
           ) : null}
@@ -503,7 +508,15 @@ function BudgetSidePanel({
   );
 }
 
-function InitialSummaryPanel({ ready, summary }: { ready: boolean; summary: AdvisorRequirementSummary }) {
+function InitialSummaryPanel({
+  configurationHref,
+  ready,
+  summary,
+}: {
+  configurationHref: string;
+  ready: boolean;
+  summary: AdvisorRequirementSummary;
+}) {
   const rows = summaryToDisplayRows(summary);
   const missing = getMissingFields(summary);
 
@@ -528,7 +541,7 @@ function InitialSummaryPanel({ ready, summary }: { ready: boolean; summary: Advi
             : `请先确认：${missing.join("、")}。AI 会先理解需求，再进入完整资源配置。`}
         </p>
         {ready ? (
-          <Link className="mt-4 inline-flex rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink" href="/advisor?state=configuration">
+          <Link className="mt-4 inline-flex rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink" href={configurationHref}>
             进入方案配置
           </Link>
         ) : null}

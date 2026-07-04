@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Bot, CheckCircle2, MessageCircle, Send, X } from "lucide-react";
 import { ADVISOR_OPEN_EVENT } from "@/components/advisor/OpenAdvisorButton";
+import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
 import {
   advisorCityOptions,
   buildAdvisorReply,
@@ -32,6 +33,7 @@ export function AdvisorLightChat() {
   const hiddenOnOps = pathname?.startsWith("/ops");
 
   const ready = useMemo(() => isRequirementReady(summary), [summary]);
+  const configurationHref = useMemo(() => buildAdvisorConfigurationHref(summary), [summary]);
   const missingFields = useMemo(() => getMissingFields(summary), [summary]);
   const displayRows = useMemo(() => summaryToDisplayRows(summary), [summary]);
 
@@ -143,7 +145,7 @@ export function AdvisorLightChat() {
                 {ready ? (
                   <Link
                     className="mt-4 flex items-center justify-center gap-2 rounded-ui bg-gold px-4 py-3 text-sm font-semibold text-ink"
-                    href="/advisor?state=configuration"
+                    href={configurationHref}
                     onClick={() => setOpen(false)}
                   >
                     <CheckCircle2 size={16} />

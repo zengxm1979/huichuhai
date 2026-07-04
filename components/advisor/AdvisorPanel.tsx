@@ -16,6 +16,7 @@ import {
 import {
   advisorCityOptions,
   buildAdvisorReply,
+  consultationProgress,
   createInitialRequirementSummary,
   extractRequirementsFromText,
   getMissingFields,
@@ -27,6 +28,8 @@ import {
   type LightChatMessage,
 } from "@/lib/advisor/lightConversation";
 import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
+import { mergeAgentPayloadIntoSummary, requestAdvisorAgentTurn } from "@/lib/agent/client";
+import type { CustomerAgentTurnPayload } from "@/lib/agent/schemas";
 import { PACKAGE_TIERS, type PackageTierId, type PackageTierLabel } from "@/lib/constants/packageTiers";
 import type { AdvisorStep, CustomerAdvisorState, ServiceSelection, ServiceSelectionStatus } from "@/lib/advisor/types";
 
@@ -66,17 +69,20 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
   const [lastSubmittedText, setLastSubmittedText] = useState("");
   const [draftInquiry, setDraftInquiry] = useState(state.inquiry);
   const [requirementSummary, setRequirementSummary] = useState<AdvisorRequirementSummary>(() => summaryFromInquiry(state.inquiry));
+  const [agentPayload, setAgentPayload] = useState<CustomerAgentTurnPayload | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<LightChatMessage[]>([
     {
       role: "advisor",
-      text: "您好，我是会出海 AI 办会顾问。先告诉我会务地点、人数、活动类型和预算，我会整理需求摘要；信息足够后再进入方案配置。[MOCK]",
+      text: "您好，我是会出海 AI 办会顾问。你可以先问城市适不适合、活动方向怎么做，或告诉我一个初步想法；我会先给建议，再一起收窄到可执行方案。[MOCK]",
     },
   ]);
 
   const budget = useMemo(() => calculateBudget(services, selectedTier), [services, selectedTier]);
   const selectedTierConfig = tierConfig[selectedTier];
-  const readyForConfiguration = isRequirementReady(requirementSummary);
+  const readyForConfiguration = agentPayload?.canEnterConfigurator ?? isRequirementReady(requirementSummary);
   const configurationHref = useMemo(() => buildAdvisorConfigurationHref(requirementSummary), [requirementSummary]);
+  const initialSummaryRows = agentPayload?.summaryRows ?? summaryToDisplayRows(requirementSummary);
   const currentSummary =
     state.step === "budgetMismatch"
       ? "当前预算和服务范围存在缺口，可以先调低部分服务项，或提交顾问基于本次询价确认资源价格和档期。"
@@ -110,14 +116,32 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
     }));
   }
 
-  function sendMessage(text = input) {
+  async function sendMessage(text = input) {
     const clean = text.trim();
     if (!clean) return;
-    const next = mergeRequirements(requirementSummary, extractRequirementsFromText(clean));
-    applySummary(next);
-    setMessages((current) => [...current, { role: "customer", text: clean }, { role: "advisor", text: buildAdvisorReply(next) }]);
+    setMessages((current) => [...current, { role: "customer", text: clean }]);
     setLastSubmittedText(clean);
     setInput("");
+    setIsSending(true);
+
+    try {
+      const payload = await requestAdvisorAgentTurn({
+        message: clean,
+        summary: requirementSummary,
+        entryPage: "advisor",
+      });
+      const next = mergeAgentPayloadIntoSummary(requirementSummary, payload);
+      setAgentPayload(payload);
+      applySummary(next);
+      setMessages((current) => [...current, { role: "advisor", text: payload.reply }]);
+    } catch {
+      const next = mergeRequirements(requirementSummary, extractRequirementsFromText(clean));
+      setAgentPayload(null);
+      applySummary(next);
+      setMessages((current) => [...current, { role: "advisor", text: buildAdvisorReply(next, clean) }]);
+    } finally {
+      setIsSending(false);
+    }
   }
 
   function handleInputChange(value: string) {
@@ -130,24 +154,17 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
     }
 
     if (shouldAutoSubmitDraft(value, lastSubmittedText)) {
-      const clean = value.trim();
-      setMessages((current) =>
-        current.some((message) => message.role === "customer" && message.text === clean)
-          ? current
-          : [...current, { role: "customer", text: clean }, { role: "advisor", text: buildAdvisorReply(next) }],
-      );
-      setLastSubmittedText(clean);
-      setInput("");
+      void sendMessage(value);
     }
   }
 
-  function selectCity(city: string) {
+  async function selectCity(city: string) {
     const next = mergeRequirements(requirementSummary, {
       eventCity: city,
       locationFlexibility: city === "暂未确定" ? "undecided" : "locked",
     });
     applySummary(next);
-    setMessages((current) => [...current, { role: "customer", text: `会务地点：${city}` }, { role: "advisor", text: buildAdvisorReply(next) }]);
+    await sendMessage(`会务地点：${city}`);
   }
 
   return (
@@ -188,13 +205,21 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 rounded-ui bg-white/8 p-4 text-sm md:grid-cols-5">
-            <HeaderMetric label="当前询盘" value={draftInquiry.eventType ?? "待补充"} />
-            <HeaderMetric label="预计人数" value={draftInquiry.attendeeCount ? `${draftInquiry.attendeeCount} 人` : "待确认"} />
-            <HeaderMetric label="举办时间" value={draftInquiry.eventStartDate ?? "待确认"} />
-            <HeaderMetric label="地点" value={draftInquiry.city ?? "待确认"} />
-            <HeaderMetric label="预算范围" value={draftInquiry.budgetRange ?? "待确认"} />
-          </div>
+          {state.step === "initial" ? (
+            <div className="mt-6 grid gap-3 rounded-ui bg-white/8 p-4 text-sm md:grid-cols-5">
+              {initialSummaryRows.map((row) => (
+                <HeaderMetric key={row.label} label={row.label} value={row.value} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-3 rounded-ui bg-white/8 p-4 text-sm md:grid-cols-5">
+              <HeaderMetric label="当前询盘" value={draftInquiry.eventType ?? "待补充"} />
+              <HeaderMetric label="预计人数" value={draftInquiry.attendeeCount ? `${draftInquiry.attendeeCount} 人` : "待确认"} />
+              <HeaderMetric label="举办时间" value={draftInquiry.eventStartDate ?? "待确认"} />
+              <HeaderMetric label="地点" value={draftInquiry.city ?? "待确认"} />
+              <HeaderMetric label="预算范围" value={draftInquiry.budgetRange ?? "待确认"} />
+            </div>
+          )}
         </div>
       </section>
 
@@ -209,6 +234,7 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
               onCitySelect={selectCity}
               onInput={handleInputChange}
               onSend={sendMessage}
+              isSending={isSending}
               ready={readyForConfiguration}
               summary={requirementSummary}
             />
@@ -219,7 +245,13 @@ export function AdvisorPanel({ state }: { state: CustomerAdvisorState }) {
           ) : null}
         </div>
         {state.step === "initial" ? (
-          <InitialSummaryPanel configurationHref={configurationHref} ready={readyForConfiguration} summary={requirementSummary} />
+          <InitialSummaryPanel
+            configurationHref={configurationHref}
+            ready={readyForConfiguration}
+            rows={initialSummaryRows}
+            progressLabel={agentPayload?.progressLabel}
+            summary={requirementSummary}
+          />
         ) : (
           <BudgetSidePanel
             budget={budget}
@@ -245,7 +277,7 @@ function HeaderMetric({ label, value }: { label: string; value: string }) {
 
 function HeroState({ state }: { state: CustomerAdvisorState }) {
   const titles: Record<AdvisorStep, string> = {
-    initial: "先告诉我您要办什么会",
+    initial: "先聊办会方向",
     configuration: "吉隆坡 · 商务会议方案配置",
     budgetMismatch: "预算范围需要进一步调整",
     submit: "提交顾问确认前，请核对方案摘要",
@@ -310,6 +342,7 @@ function InitialConsultation({
   onCitySelect,
   onInput,
   onSend,
+  isSending,
   ready,
   summary,
 }: {
@@ -319,6 +352,7 @@ function InitialConsultation({
   onCitySelect: (city: string) => void;
   onInput: (value: string) => void;
   onSend: (value?: string) => void;
+  isSending: boolean;
   ready: boolean;
   summary: AdvisorRequirementSummary;
 }) {
@@ -352,10 +386,15 @@ function InitialConsultation({
             onKeyDown={(event) => {
               if (event.key === "Enter") onSend();
             }}
-            placeholder="输入活动类型、人数、城市、预算或特殊需求"
+            placeholder="输入目标城市、活动意图，或想比较的问题"
             value={input}
           />
-          <button className="rounded-ui bg-gold px-4 py-3 font-semibold text-ink" onClick={() => onSend()} type="button">
+          <button
+            className="rounded-ui bg-gold px-4 py-3 font-semibold text-ink disabled:opacity-55"
+            disabled={isSending}
+            onClick={() => onSend()}
+            type="button"
+          >
             发送
           </button>
         </div>
@@ -377,9 +416,9 @@ function InitialConsultation({
             </button>
           ))}
         </div>
-        <p className="mt-5 font-semibold">快捷补充</p>
+        <p className="mt-5 font-semibold">可以这样问</p>
         <div className="mt-3 grid gap-2">
-          {["地点在吉隆坡，120人，经销商大会，预算80-100万，需要物料和接送机", "预算希望控制在60-70万", "需要晚宴、住宿和茶歇"].map((item) => (
+          {["我想先判断一个城市适不适合办会", "帮我比较商务交流和客户接待两种方向", "先帮我看一个偏投资交流的活动方向"].map((item) => (
             <button
               className="rounded-ui border border-white/20 px-3 py-2 text-left text-sm text-white/80"
               key={item}
@@ -534,20 +573,23 @@ function BudgetSidePanel({
 
 function InitialSummaryPanel({
   configurationHref,
+  progressLabel,
   ready,
+  rows,
   summary,
 }: {
   configurationHref: string;
+  progressLabel?: string;
   ready: boolean;
+  rows: Array<{ label: string; value: string }>;
   summary: AdvisorRequirementSummary;
 }) {
-  const rows = summaryToDisplayRows(summary);
   const missing = getMissingFields(summary);
 
   return (
     <aside className="space-y-4">
       <section className="rounded-ui bg-ink p-5 text-white">
-        <p className="border-l-4 border-gold pl-3 text-lg font-semibold">需求摘要</p>
+        <p className="border-l-4 border-gold pl-3 text-lg font-semibold">咨询进度 / 轻摘要</p>
         <div className="mt-5 grid gap-3 text-sm">
           {rows.map((row) => (
             <div className="flex justify-between gap-4 border-b border-white/10 pb-3 last:border-0" key={row.label}>
@@ -558,11 +600,11 @@ function InitialSummaryPanel({
         </div>
       </section>
       <section className="rounded-ui border border-line bg-white p-5">
-        <h3 className="font-semibold text-ink">{ready ? "可以进入第二层配置" : "还需要补充"}</h3>
+        <h3 className="font-semibold text-ink">{ready ? "可以进入第二层配置" : progressLabel ?? consultationProgress(summary)}</h3>
         <p className="mt-3 text-sm leading-7 text-ocean/70">
           {ready
             ? "核心信息已收集，可以进入方案包、服务项与预算结构配置。预算仍是参考范围，不是正式报价。"
-            : `请先确认：${missing.join("、")}。AI 会先理解需求，再进入完整资源配置。`}
+            : `当前先围绕活动意图、城市适配和关注重点做判断。${missing.length ? "等方向明确后，再整理人数、预算和资源配置。" : "可以继续补充你的偏好。"}`}
         </p>
         {ready ? (
           <Link className="mt-4 inline-flex rounded-ui bg-gold px-4 py-2.5 text-sm font-semibold text-ink" href={configurationHref}>

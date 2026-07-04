@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { Bot, CheckCircle2, MessageCircle, Send, X } from "lucide-react";
 import { ADVISOR_OPEN_EVENT } from "@/components/advisor/OpenAdvisorButton";
 import { buildAdvisorConfigurationHref } from "@/lib/advisor/advisorUrlState";
+import { mergeAgentPayloadIntoSummary, requestAdvisorAgentTurn } from "@/lib/agent/client";
+import type { CustomerAgentTurnPayload } from "@/lib/agent/schemas";
 import {
   advisorCityOptions,
   buildAdvisorReply,
@@ -30,11 +32,14 @@ export function AdvisorLightChat() {
   const [input, setInput] = useState("");
   const [summary, setSummary] = useState<AdvisorRequirementSummary>(() => createInitialRequirementSummary());
   const [messages, setMessages] = useState<LightChatMessage[]>([initialMessage]);
+  const [agentPayload, setAgentPayload] = useState<CustomerAgentTurnPayload | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const hiddenOnOps = pathname?.startsWith("/ops");
 
-  const ready = useMemo(() => isRequirementReady(summary), [summary]);
+  const ready = useMemo(() => agentPayload?.canEnterConfigurator ?? isRequirementReady(summary), [agentPayload, summary]);
   const configurationHref = useMemo(() => buildAdvisorConfigurationHref(summary), [summary]);
-  const displayRows = useMemo(() => summaryToDisplayRows(summary), [summary]);
+  const displayRows = useMemo(() => agentPayload?.summaryRows ?? summaryToDisplayRows(summary), [agentPayload, summary]);
+  const progressLabel = agentPayload?.progressLabel ?? consultationProgress(summary);
 
   useEffect(() => {
     function handleOpen() {
@@ -47,34 +52,42 @@ export function AdvisorLightChat() {
 
   if (hiddenOnOps) return null;
 
-  function applyCustomerText(text: string) {
+  async function applyCustomerText(text: string) {
     const clean = text.trim();
     if (!clean) return;
 
-    setSummary((current) => {
-      const next = mergeRequirements(current, extractRequirementsFromText(clean));
-      setMessages((items) => [
-        ...items,
-        { role: "customer", text: clean },
-        { role: "advisor", text: buildAdvisorReply(next, clean) },
-      ]);
-      return next;
-    });
     setInput("");
+    setIsSending(true);
+    setMessages((items) => [...items, { role: "customer", text: clean }]);
+
+    try {
+      const payload = await requestAdvisorAgentTurn({
+        message: clean,
+        summary,
+        entryPage: pathname === "/inquiry" ? "inquiry" : pathname === "/advisor" ? "advisor" : "home",
+      });
+      const next = mergeAgentPayloadIntoSummary(summary, payload);
+      setAgentPayload(payload);
+      setSummary(next);
+      setMessages((items) => [...items, { role: "advisor", text: payload.reply }]);
+    } catch {
+      const next = mergeRequirements(summary, extractRequirementsFromText(clean));
+      setAgentPayload(null);
+      setSummary(next);
+      setMessages((items) => [...items, { role: "advisor", text: buildAdvisorReply(next, clean) }]);
+    } finally {
+      setIsSending(false);
+    }
   }
 
-  function selectCity(city: string) {
+  async function selectCity(city: string) {
     const next = mergeRequirements(summary, {
       eventCity: city,
       locationFlexibility: city === "暂未确定" ? "undecided" : "locked",
     });
     setSummary(next);
-    setMessages((items) => [
-      ...items,
-      { role: "customer", text: `会务地点：${city}` },
-      { role: "advisor", text: buildAdvisorReply(next) },
-    ]);
     setOpen(true);
+    await applyCustomerText(`会务地点：${city}`);
   }
 
   return (
@@ -130,7 +143,7 @@ export function AdvisorLightChat() {
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-semibold text-ink">咨询进度 / 轻摘要</h2>
                   <span className="rounded-ui bg-gold/15 px-2 py-1 text-xs font-semibold text-ocean">
-                    {consultationProgress(summary)}
+                    {progressLabel}
                   </span>
                 </div>
                 <div className="mt-3 grid gap-2 text-sm">
@@ -178,7 +191,12 @@ export function AdvisorLightChat() {
                   placeholder="例如：我想到新山举办投资大会，有什么建议的方案吗？"
                   value={input}
                 />
-                <button className="rounded-ui bg-ink px-4 py-3 text-white" onClick={() => applyCustomerText(input)} type="button">
+                <button
+                  className="rounded-ui bg-ink px-4 py-3 text-white disabled:opacity-55"
+                  disabled={isSending}
+                  onClick={() => applyCustomerText(input)}
+                  type="button"
+                >
                   <Send size={16} />
                 </button>
               </div>

@@ -1,6 +1,5 @@
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { getOpsLoginTarget } from "@/lib/deployment/opsServerAccess";
-import { loginOps } from "@/app/ops/login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,7 @@ export default async function OpsLoginPage({
             这里用于 Chris / 运营人员审核会务资源录入、当次询价和 AI 线索摘要。当前为 Phase 1 审核预览门禁，不是正式账号体系。
           </p>
 
-          <form action={loginOps} className="mt-8 grid max-w-md gap-4">
+          <form action="/ops/login/session" className="mt-8 grid max-w-md gap-4" method="post">
             <input name="next" type="hidden" value={next} />
             <label className="grid gap-2 text-sm font-semibold text-ink">
               审核访问密码

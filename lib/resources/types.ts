@@ -18,6 +18,12 @@ export type QuoteRequestType =
 
 export type Currency = "CNY" | "MYR" | "USD";
 
+export type ResourceContentStatus = "draft" | "needs_review" | "verified" | "public_ready";
+
+export type ImageAuthorizationStatus = "unknown" | "internal_only" | "public_approved" | "needs_replacement";
+
+export type CasePotential = "none" | "anonymous_candidate" | "named_candidate" | "approved";
+
 export type ResourceMaster = {
   id: string;
   resourceType: ResourceType;
@@ -41,9 +47,16 @@ export type ResourceMaster = {
   strategicCooperationLevel: "strategic" | "preferred" | "candidate";
   agreementStatus: "active" | "pending" | "expired" | "mock";
   customerVisibleSummary: string;
+  publicSummaryDraft: string;
+  publicContentNotes: string;
+  commonUseCases: string[];
+  cityContentTags: string[];
+  faqSeeds: string[];
+  casePotential: CasePotential;
+  imageAuthorizationStatus: ImageAuthorizationStatus;
   internalNegotiationNote: string;
   internalRiskNote: string;
-  contentStatus: "mock" | "verified" | "needs_review";
+  contentStatus: ResourceContentStatus;
   lastVerifiedAt: string;
 };
 

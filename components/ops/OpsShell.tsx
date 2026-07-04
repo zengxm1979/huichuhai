@@ -4,6 +4,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 
 const opsLinks = [
   { href: "/ops/resources", label: "资源主档" },
+  { href: "/ops/content-candidates", label: "内容素材" },
   { href: "/ops/quote-requests", label: "当次询价单" },
   { href: "/ops/leads", label: "AI 线索" },
 ];

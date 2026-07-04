@@ -44,7 +44,9 @@ describe("review access token", () => {
 
   it("keeps ops login redirects inside the internal ops area", () => {
     expect(sanitizeOpsNextPath("/ops/resources")).toBe("/ops/resources");
+    expect(sanitizeOpsNextPath("/ops/content-candidates")).toBe("/ops/content-candidates");
     expect(sanitizeOpsNextPath("/ops/quote-requests")).toBe("/ops/quote-requests");
+    expect(sanitizeOpsNextPath("/advisor")).toBe("/ops/resources");
     expect(sanitizeOpsNextPath("/")).toBe("/ops/resources");
     expect(sanitizeOpsNextPath("https://example.com/ops/resources")).toBe("/ops/resources");
     expect(sanitizeOpsNextPath("/ops/login")).toBe("/ops/resources");

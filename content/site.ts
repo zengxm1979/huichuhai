@@ -45,10 +45,10 @@ export const featuredVenues = [
   {
     name: "Banyan Tree Kuala Lumpur",
     city: "吉隆坡",
-    capacity: "Boardroom / 私享活动约 10-15 人",
+    capacity: "Meet & Feed Capacity 约 40 人",
     address: "2 Jalan Conlay, 50450 Kuala Lumpur",
     price: "会议室与餐饮需向酒店询价",
-    sourceUrl: "https://www.banyantree.com/malaysia/kuala-lumpur",
+    sourceUrl: "https://www.banyantree.com/meetings-and-events-find-a-venue",
     image:
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
   },

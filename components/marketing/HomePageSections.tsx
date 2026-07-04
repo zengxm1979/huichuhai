@@ -112,12 +112,15 @@ export function HomePageSections() {
       <section className="bg-cloud py-14" id="materials">
         <div className="mx-auto max-w-7xl px-5">
           <SectionTitle action="查看会务支持" eyebrow="Materials" title="会务物料与视觉支持" />
-          <div className="mt-6 grid gap-4 md:grid-cols-6">
-            {materialSupport.map((item, index) => (
-              <article className="rounded-ui border border-line bg-white p-4" key={item}>
-                <div className="h-28 rounded-ui bg-gradient-to-br from-ocean via-ink to-gold/70" />
-                <p className="mt-3 text-sm font-semibold text-ink">{item}</p>
-                <p className="mt-1 text-xs text-coral">示例内容 [MOCK {index + 1}]</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {materialSupport.map((item) => (
+              <article className="group overflow-hidden rounded-ui border border-line bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft" key={item.title}>
+                <MaterialMockVisual type={item.type} />
+                <div className="p-4">
+                  <p className="text-sm font-semibold leading-6 text-ink">{item.title}</p>
+                  <p className="mt-2 min-h-10 text-xs leading-5 text-ocean/70">{item.summary}</p>
+                  <p className="mt-3 rounded-ui bg-coral/10 px-2 py-1 text-xs font-semibold text-coral">{item.detail}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -197,6 +200,119 @@ function TrustLine({ body, icon, title }: { body: string; icon: ReactNode; title
       <div>
         <p className="font-semibold text-ink">{title}</p>
         <p className="mt-1 text-xs leading-5 text-ocean/70">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+function MaterialMockVisual({ type }: { type: (typeof materialSupport)[number]["type"] }) {
+  return (
+    <div className="relative h-36 overflow-hidden bg-ink">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(26,166,166,0.5),transparent_32%),linear-gradient(135deg,#061d32,#0b3a4b_55%,#d9a24a)] opacity-95" />
+      <div className="absolute inset-x-4 bottom-4 top-4">
+        {type === "stage" ? <StageVisual /> : null}
+        {type === "signage" ? <SignageVisual /> : null}
+        {type === "badge" ? <BadgeVisual /> : null}
+        {type === "booklet" ? <BookletVisual /> : null}
+        {type === "gift" ? <GiftVisual /> : null}
+        {type === "screen" ? <ScreenVisual /> : null}
+      </div>
+      <span className="absolute right-3 top-3 rounded-ui bg-white/14 px-2 py-1 text-[10px] font-semibold tracking-[0.14em] text-white">
+        MOCK
+      </span>
+    </div>
+  );
+}
+
+function StageVisual() {
+  return (
+    <div className="flex h-full flex-col justify-end">
+      <div className="rounded-t-ui border border-white/20 bg-white/12 p-3 shadow-2xl">
+        <div className="h-14 rounded-ui bg-[linear-gradient(90deg,#0b3a4b,#1aa6a6,#f3c679)] p-2">
+          <div className="h-2 w-20 rounded-full bg-white/70" />
+          <div className="mt-2 h-1.5 w-32 rounded-full bg-white/35" />
+        </div>
+      </div>
+      <div className="h-4 bg-black/25" />
+    </div>
+  );
+}
+
+function SignageVisual() {
+  return (
+    <div className="flex h-full items-end justify-center gap-4">
+      <div className="h-24 w-14 rounded-t-ui bg-white/92 p-2 shadow-xl">
+        <div className="h-2 rounded-full bg-gold" />
+        <div className="mt-3 h-2 rounded-full bg-ink/80" />
+        <div className="mt-2 h-1.5 rounded-full bg-ink/30" />
+      </div>
+      <div className="h-20 w-11 rounded-t-ui bg-white/75 p-2 shadow-xl">
+        <div className="h-8 rounded-ui bg-teal/70" />
+      </div>
+    </div>
+  );
+}
+
+function BadgeVisual() {
+  return (
+    <div className="flex h-full items-center justify-center gap-3">
+      {[0, 1, 2].map((item) => (
+        <div className="relative h-20 w-14 rounded-ui bg-white p-2 shadow-xl" key={item}>
+          <div className="absolute -top-6 left-1/2 h-8 w-px -translate-x-1/2 bg-gold/80" />
+          <div className="h-5 rounded-full bg-ink/80" />
+          <div className="mt-2 h-2 rounded-full bg-teal/70" />
+          <div className="mt-2 grid grid-cols-3 gap-0.5">
+            {Array.from({ length: 9 }).map((_, index) => (
+              <span className="h-1 bg-ink/25" key={index} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BookletVisual() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="h-24 w-32 -rotate-6 rounded-ui bg-white p-3 shadow-xl">
+        <div className="h-3 w-20 rounded-full bg-gold" />
+        <div className="mt-5 h-2 rounded-full bg-ink/70" />
+        <div className="mt-2 h-2 w-20 rounded-full bg-ink/35" />
+        <div className="mt-4 h-5 rounded-ui bg-teal/60" />
+      </div>
+      <div className="-ml-20 h-24 w-32 rotate-5 rounded-ui border border-white/30 bg-white/70 p-3 shadow-xl" />
+    </div>
+  );
+}
+
+function GiftVisual() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="relative h-24 w-24 rounded-ui bg-white/92 shadow-xl">
+        <div className="absolute -top-5 left-6 h-8 w-12 rounded-t-full border-2 border-gold/80 border-b-0" />
+        <div className="absolute inset-x-0 top-10 h-px bg-ink/15" />
+        <div className="mx-auto mt-8 grid h-9 w-9 place-items-center rounded-full border border-gold text-xs font-semibold text-ink">
+          会
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenVisual() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="h-24 w-36 rounded-ui border border-white/30 bg-black/45 p-3 shadow-2xl">
+        <div className="h-3 w-16 rounded-full bg-gold" />
+        <div className="mt-4 grid grid-cols-[1fr_2fr] gap-2">
+          <div className="h-10 rounded-ui bg-teal/70" />
+          <div className="space-y-1.5">
+            <div className="h-1.5 rounded-full bg-white/70" />
+            <div className="h-1.5 rounded-full bg-white/35" />
+            <div className="h-1.5 w-12 rounded-full bg-white/35" />
+          </div>
+        </div>
       </div>
     </div>
   );

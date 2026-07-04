@@ -67,13 +67,43 @@ export const featuredVenues = [
 ];
 
 export const materialSupport = [
-  "主视觉背板 / 舞台设计",
-  "现场指示牌 / 易拉宝",
-  "胸卡 / 挂绳 / 证件",
-  "会议手册 / 议程册",
-  "礼品袋 / 定制礼品",
-  "PPT 设计 / 屏幕支持",
-];
+  {
+    title: "主视觉背板 / 舞台设计",
+    type: "stage",
+    summary: "会议主 KV、舞台屏幕、发言区背板",
+    detail: "16:9 主屏 / 侧屏延展 [MOCK]",
+  },
+  {
+    title: "现场指示牌 / 易拉宝",
+    type: "signage",
+    summary: "签到区、分会场、动线引导",
+    detail: "中英双语导视 [MOCK]",
+  },
+  {
+    title: "胸卡 / 挂绳 / 证件",
+    type: "badge",
+    summary: "嘉宾、工作人员、媒体分色管理",
+    detail: "含二维码或桌号 [MOCK]",
+  },
+  {
+    title: "会议手册 / 议程册",
+    type: "booklet",
+    summary: "议程、嘉宾介绍、酒店与交通信息",
+    detail: "A5 / 骑马钉装订 [MOCK]",
+  },
+  {
+    title: "礼品袋 / 定制礼品",
+    type: "gift",
+    summary: "客户伴手礼、礼袋、品牌贴纸",
+    detail: "按预算分档配置 [MOCK]",
+  },
+  {
+    title: "PPT 设计 / 屏幕支持",
+    type: "screen",
+    summary: "开场页、议程页、颁奖页、控屏备份",
+    detail: "现场比例适配 [MOCK]",
+  },
+] as const;
 
 export const faqs = [
   "在马来西亚办会的优势是什么？",

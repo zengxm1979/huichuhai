@@ -103,6 +103,10 @@ function truncate(value: string, maxLength: number) {
 
 function redactModelTestError(error: unknown) {
   if (error instanceof ModelProviderHttpError) {
+    if (error.providerName === "minimax") {
+      return `模型接口返回 ${error.status}：请检查 MiniMax API Key、模型名或接口可达性。`;
+    }
+
     return `模型接口返回 ${error.status}：可能不支持 json_schema structured output，或模型、接口地址配置不正确。`;
   }
 

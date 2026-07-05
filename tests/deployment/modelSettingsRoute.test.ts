@@ -199,6 +199,28 @@ describe("ops model settings test route", () => {
     expect(json).not.toContain("Authorization");
   });
 
+  it("returns a MiniMax-specific redacted error when the API rejects the request", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ error: "bad key minimax-test-secret" }, 401)));
+
+    const response = await POST(
+      createRequest({
+        provider: "minimax",
+        model: "MiniMax-M3",
+        apiKey: "minimax-test-secret",
+      }),
+    );
+
+    const payload = await response.json();
+    const json = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(false);
+    expect(payload.errorMessage).toContain("模型接口返回 401");
+    expect(payload.errorMessage).not.toContain("json_schema");
+    expect(json).not.toContain("minimax-test-secret");
+    expect(json).not.toContain("Authorization");
+  });
+
   it("returns a redacted structured-output error when provider rejects the request", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ error: "bad key sk-test-secret" }, 400)));
 

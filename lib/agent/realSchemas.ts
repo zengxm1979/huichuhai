@@ -97,6 +97,181 @@ export type RealAdvisorAgentTurnRequest = {
   entryPage?: "home" | "inquiry" | "advisor";
 };
 
+export const realAdvisorAgentTurnResultJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "stage",
+    "replyToCustomer",
+    "followupQuestion",
+    "extractedFacts",
+    "missingFacts",
+    "budgetUnderstanding",
+    "recommendedNextAction",
+    "canEnterConfigurator",
+    "shouldNotifyOperator",
+    "opsOnlySummary",
+    "leadSignals",
+    "safetyFlags",
+  ],
+  properties: {
+    stage: {
+      type: "string",
+      enum: ["orientation", "exploring", "structuring", "configuration_ready", "handoff_ready"],
+    },
+    replyToCustomer: { type: "string" },
+    followupQuestion: { type: ["string", "null"] },
+    extractedFacts: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "city",
+        "region",
+        "eventType",
+        "eventIntent",
+        "attendeeCount",
+        "scaleBand",
+        "budgetRange",
+        "eventDateRange",
+        "requestedServices",
+        "contactProvided",
+      ],
+      properties: {
+        city: { type: ["string", "null"] },
+        region: { type: ["string", "null"] },
+        eventType: { type: ["string", "null"] },
+        eventIntent: { type: ["string", "null"] },
+        attendeeCount: { type: ["number", "null"] },
+        scaleBand: { type: ["string", "null"], enum: ["small", "medium", "large", "undetermined", null] },
+        budgetRange: { type: ["string", "null"] },
+        eventDateRange: { type: ["string", "null"] },
+        requestedServices: {
+          type: "array",
+          items: { type: "string" },
+        },
+        contactProvided: { type: ["boolean", "null"] },
+      },
+    },
+    missingFacts: {
+      type: "array",
+      items: { type: "string" },
+    },
+    budgetUnderstanding: {
+      anyOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["level", "customerVisibleSummary", "assumptions", "exclusions"],
+          properties: {
+            level: {
+              type: "string",
+              enum: ["unknown", "rough_range", "service_tradeoff", "ready_for_estimate"],
+            },
+            customerVisibleSummary: { type: "string" },
+            assumptions: {
+              type: "array",
+              items: { type: "string" },
+            },
+            exclusions: {
+              type: "array",
+              items: { type: "string" },
+            },
+          },
+        },
+        { type: "null" },
+      ],
+    },
+    recommendedNextAction: {
+      type: "string",
+      enum: [
+        "continue_orientation",
+        "compare_options",
+        "ask_one_question",
+        "enter_configurator",
+        "submit_inquiry",
+        "handoff_to_operator",
+      ],
+    },
+    canEnterConfigurator: { type: "boolean" },
+    shouldNotifyOperator: { type: "boolean" },
+    opsOnlySummary: {
+      anyOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["leadSummary", "suggestedFollowup", "missingInformation", "recommendedOpening"],
+          properties: {
+            leadSummary: { type: "string" },
+            suggestedFollowup: { type: "string" },
+            missingInformation: {
+              type: "array",
+              items: { type: "string" },
+            },
+            recommendedOpening: { type: ["string", "null"] },
+          },
+        },
+        { type: "null" },
+      ],
+    },
+    leadSignals: {
+      anyOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["authenticityLevel", "intentLevel", "urgencyLevel", "reasons"],
+          properties: {
+            authenticityLevel: { type: "string", enum: ["unknown", "low", "medium", "high"] },
+            intentLevel: { type: "string", enum: ["low", "medium", "high"] },
+            urgencyLevel: { type: "string", enum: ["low", "medium", "high"] },
+            reasons: {
+              type: "array",
+              items: { type: "string" },
+            },
+          },
+        },
+        { type: "null" },
+      ],
+    },
+    safetyFlags: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["code", "customerSafeHandling"],
+        properties: {
+          code: {
+            type: "string",
+            enum: [
+              "quote_requested",
+              "availability_requested",
+              "supplier_internal_requested",
+              "mock_content_risk",
+              "private_data_risk",
+            ],
+          },
+          customerSafeHandling: { type: "string" },
+        },
+      },
+    },
+  },
+} as const;
+
 export function parseRealAdvisorAgentTurnResult(value: unknown): RealAdvisorAgentTurnResult {
-  return realAdvisorAgentTurnResultSchema.parse(value);
+  return realAdvisorAgentTurnResultSchema.parse(stripNullObjectFields(value));
+}
+
+function stripNullObjectFields(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripNullObjectFields);
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, child]) => child !== null)
+      .map(([key, child]) => [key, stripNullObjectFields(child)]),
+  );
 }

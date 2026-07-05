@@ -1,4 +1,4 @@
-import { parseRealAdvisorAgentTurnResult } from "@/lib/agent/realSchemas";
+import { parseRealAdvisorAgentTurnResult, realAdvisorAgentTurnResultJsonSchema } from "@/lib/agent/realSchemas";
 import type { RealAdvisorAgentTurnRequest, RealAdvisorAgentTurnResult } from "@/lib/agent/realSchemas";
 import type { AdvisorAgentProvider } from "@/lib/agent/providers/types";
 
@@ -33,7 +33,14 @@ async function generateOpenAITurn(request: RealAdvisorAgentTurnRequest): Promise
     },
     body: JSON.stringify({
       model,
-      response_format: { type: "json_object" },
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "real_advisor_agent_turn_result",
+          strict: true,
+          schema: realAdvisorAgentTurnResultJsonSchema,
+        },
+      },
       messages: [
         {
           role: "system",

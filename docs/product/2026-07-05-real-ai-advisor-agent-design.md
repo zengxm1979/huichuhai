@@ -554,6 +554,7 @@ Phase 2.1 的实现目标是建立真实模型 Agent route 与 eval 基座，而
 - `ADVISOR_AGENT_PROVIDER=mock` 或未配置真实模型 key 时，使用稳定 rules fallback。
 - `ADVISOR_AGENT_PROVIDER=openai` 且部署环境提供 `OPENAI_API_KEY` 与 `OPENAI_ADVISOR_MODEL` 后，才启用真实模型 provider。
 - 真实模型 provider 调用失败、输出 schema 校验失败或运行时异常时，必须回落到 rules fallback，不中断客户咨询。
+- Phase 2.1 暂不引入 OpenAI SDK / zod helper；OpenAI Structured Outputs JSON Schema 与服务端 Zod schema 保持在同一 schema 模块维护，修改 `RealAdvisorAgentTurnResult` 时必须同步更新两者和 eval 测试，避免类型与模型输出约束分叉。
 - 本阶段不接正式 RAG / 知识库，不把 MOCK 内容注入真实知识，不生成正式报价，不触发真实 ops 通知。
 - 客户侧仍只接收 customer-safe payload；`opsOnlySummary`、`leadSignals`、真实性/意向/优先级/风险、供应商内部字段、底价、返点、内部备注都不得返回客户侧。
 

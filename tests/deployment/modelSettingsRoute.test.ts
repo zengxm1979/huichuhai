@@ -137,6 +137,11 @@ describe("ops model settings test route", () => {
     expect(payload.diagnosticStage).toBe("passed");
     expect(body.response_format).toBeUndefined();
     expect(JSON.stringify(body)).toContain("只输出 JSON");
+    expect(JSON.stringify(body)).toContain("configuration_ready");
+    expect(JSON.stringify(body)).toContain("handoff_to_operator");
+    expect(JSON.stringify(body)).toContain("ready_for_estimate");
+    expect(JSON.stringify(body)).toContain("quote_requested");
+    expect(JSON.stringify(body)).toContain("不要改 key 名");
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
   });
 

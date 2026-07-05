@@ -164,23 +164,28 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
               {result.stage ? <StatusRow label="Stage" value={result.stage} /> : null}
               {result.replyPreview ? <StatusRow label="Reply Preview" value={result.replyPreview} /> : null}
               {result.errorMessage ? <StatusRow label="Error" value={result.errorMessage} /> : null}
+              {result.diagnosticStage === "schema_validation" ? <StatusRow label="Issues Count" value={String(result.validationIssues?.length ?? 0)} /> : null}
             </div>
+
+            {result.diagnosticStage === "schema_validation" ? (
+              <div className="mt-4 rounded-ui border border-line bg-white/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ocean/50">Validation Issues</p>
+                {result.validationIssues?.length ? (
+                  <ul className="mt-2 grid gap-1 text-xs leading-5 text-ocean/75">
+                    {result.validationIssues.map((issue) => (
+                      <li key={issue}>{issue}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-xs leading-5 text-ocean/75">结构校验失败，但没有返回具体字段路径；请查看 Response Preview。</p>
+                )}
+              </div>
+            ) : null}
 
             {result.responsePreview ? (
               <div className="mt-4 rounded-ui border border-line bg-white/70 p-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ocean/50">Response Preview</p>
                 <pre className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-ocean/75">{result.responsePreview}</pre>
-              </div>
-            ) : null}
-
-            {result.validationIssues?.length ? (
-              <div className="mt-4 rounded-ui border border-line bg-white/70 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ocean/50">Validation Issues</p>
-                <ul className="mt-2 grid gap-1 text-xs leading-5 text-ocean/75">
-                  {result.validationIssues.map((issue) => (
-                    <li key={issue}>{issue}</li>
-                  ))}
-                </ul>
               </div>
             ) : null}
           </div>

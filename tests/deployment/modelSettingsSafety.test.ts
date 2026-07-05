@@ -30,5 +30,8 @@ describe("model settings customer-side safety", () => {
     expect(source).toContain("不要把 API Key 发给无关人员");
     expect(source).toContain("Response Preview");
     expect(source).toContain("Validation Issues");
+    expect(source).toContain("Issues Count");
+    expect(source).toContain("结构校验失败，但没有返回具体字段路径；请查看 Response Preview");
+    expect(source.indexOf("Validation Issues")).toBeLessThan(source.indexOf("Response Preview"));
   });
 });

@@ -28,7 +28,7 @@ function mockChatCompletion(content: unknown, status = 200) {
         choices: [
           {
             message: {
-              content: JSON.stringify(content),
+              content: typeof content === "string" ? content : JSON.stringify(content),
             },
           },
         ],
@@ -116,7 +116,7 @@ describe("ops model settings test route", () => {
     expect(json).not.toContain("Authorization");
   });
 
-  it("supports minimax as an OpenAI-compatible structured output test", async () => {
+  it("tests MiniMax without OpenAI json_schema response_format", async () => {
     const fetchMock = vi.fn(async () => mockChatCompletion(validTurn()));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -134,7 +134,8 @@ describe("ops model settings test route", () => {
 
     expect(payload.ok).toBe(true);
     expect(payload.provider).toBe("minimax");
-    expect(body.response_format.type).toBe("json_schema");
+    expect(body.response_format).toBeUndefined();
+    expect(JSON.stringify(body)).toContain("只输出 JSON");
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
   });
 
@@ -155,6 +156,47 @@ describe("ops model settings test route", () => {
     expect(payload.ok).toBe(true);
     expect(fetchMock.mock.calls[0][0]).toBe("https://api.minimaxi.com/v1/chat/completions");
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
+  });
+
+  it("parses MiniMax content after removing think tags", async () => {
+    const fetchMock = vi.fn(async () => mockChatCompletion(`<think>先思考，但不要返回给用户</think>\n${JSON.stringify(validTurn())}`));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      createRequest({
+        provider: "minimax",
+        model: "MiniMax-M3",
+        apiKey: "minimax-test-secret",
+      }),
+    );
+
+    const payload = await response.json();
+
+    expect(payload.ok).toBe(true);
+    expect(payload.provider).toBe("minimax");
+    expect(payload.stage).toBe("exploring");
+    expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
+  });
+
+  it("returns a redacted validation error when MiniMax returns natural language", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion("我可以帮你规划新山投资大会。")));
+
+    const response = await POST(
+      createRequest({
+        provider: "minimax",
+        model: "MiniMax-M3",
+        apiKey: "minimax-test-secret",
+      }),
+    );
+
+    const payload = await response.json();
+    const json = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(false);
+    expect(payload.errorMessage).toContain("结构化");
+    expect(json).not.toContain("minimax-test-secret");
+    expect(json).not.toContain("Authorization");
   });
 
   it("returns a redacted structured-output error when provider rejects the request", async () => {

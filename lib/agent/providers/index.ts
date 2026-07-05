@@ -18,7 +18,6 @@ export function getAdvisorAgentProvider(): AdvisorAgentProvider {
     requestedProvider === "minimax" &&
     process.env.MINIMAX_API_KEY &&
     process.env.MINIMAX_ADVISOR_MODEL &&
-    process.env.MINIMAX_BASE_URL &&
     process.env.NODE_ENV !== "test"
   ) {
     return createMiniMaxAdvisorProvider();

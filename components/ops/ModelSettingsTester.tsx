@@ -19,6 +19,7 @@ type EnvStatus = {
   openaiModelConfigured: boolean;
   minimaxKeyConfigured: boolean;
   minimaxModelConfigured: boolean;
+  vercelAutomationConfigured: boolean;
 };
 
 type TestResult = {
@@ -34,30 +35,45 @@ type TestResult = {
   errorMessage?: string;
 };
 
+type SaveResult = {
+  ok: boolean;
+  testResult?: TestResult;
+  envUpdated?: string[];
+  deploymentId?: string;
+  deploymentUrl?: string;
+  message?: string;
+  errorMessage?: string;
+};
+
 export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
   const [provider, setProvider] = useState<Provider>("minimax");
   const [model, setModel] = useState(DEFAULT_MINIMAX_MODEL);
   const [apiKey, setApiKey] = useState("");
   const [testMessage, setTestMessage] = useState(DEFAULT_MODEL_TEST_MESSAGE);
   const [result, setResult] = useState<TestResult | null>(null);
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const modelOptions = provider === "minimax" ? MINIMAX_MODEL_OPTIONS : OPENAI_MODEL_OPTIONS;
-  const canSubmit = useMemo(() => model.trim().length > 0 && apiKey.trim().length > 0 && !isTesting, [apiKey, isTesting, model]);
+  const canSubmit = useMemo(() => model.trim().length > 0 && apiKey.trim().length > 0 && !isTesting && !isSaving, [apiKey, isSaving, isTesting, model]);
+  const canSave = result?.ok && result.provider === "minimax" && provider === "minimax" && envStatus.vercelAutomationConfigured && !isSaving && !isTesting;
 
   function updateProvider(nextProvider: Provider) {
     setProvider(nextProvider);
     setModel(nextProvider === "minimax" ? DEFAULT_MINIMAX_MODEL : DEFAULT_OPENAI_MODEL);
     setResult(null);
+    setSaveResult(null);
   }
 
   async function submitTest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setResult(null);
+    setSaveResult(null);
     setIsTesting(true);
 
     try {
-      const response = await fetch("/ops/model-settings/test", {
+      const response = await fetch(opsApiPath("/ops/model-settings/test"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,6 +99,33 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
     }
   }
 
+  async function saveAndEnable() {
+    setSaveResult(null);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(opsApiPath("/ops/model-settings/save"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          model,
+          apiKey,
+          testMessage,
+        }),
+      });
+      const payload = (await response.json()) as SaveResult;
+      setSaveResult(payload);
+    } catch {
+      setSaveResult({
+        ok: false,
+        errorMessage: "保存请求失败，请检查网络或联系技术人员。",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-ui border border-line bg-white p-5">
@@ -95,14 +138,20 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
           <StatusRow label="OpenAI Model" value={envStatus.openaiModelConfigured ? "已配置" : "未配置"} />
           <StatusRow label="MiniMax API Key" value={envStatus.minimaxKeyConfigured ? "已配置" : "未配置"} />
           <StatusRow label="MiniMax Model" value={envStatus.minimaxModelConfigured ? "已配置" : "未配置"} />
+          <StatusRow label="自动保存能力" value={envStatus.vercelAutomationConfigured ? "已配置" : "未配置"} />
         </div>
+        {!envStatus.vercelAutomationConfigured ? (
+          <p className="mt-4 rounded-ui bg-gold/10 p-3 text-sm leading-6 text-ocean/75">
+            当前环境未配置自动保存能力，请联系技术人员配置 Vercel 管理变量；联通测试仍可正常使用。
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-ui border border-line bg-white p-5">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">Connection test</p>
         <h2 className="mt-2 text-xl font-semibold text-ink">临时输入配置并测试联通</h2>
         <p className="mt-2 text-sm leading-6 text-ocean/70">
-          API Key 只用于本次服务端联通测试，不会保存；正式启用请配置部署环境变量。不要把 API Key 发给无关人员。
+          API Key 只用于本次服务端联通测试；点击保存并启用后，服务端会写入部署环境变量，不会存到浏览器。不要把 API Key 发给无关人员。
         </p>
         <p className="mt-2 text-sm leading-6 text-ocean/70">默认使用 MiniMax 官方 OpenAI 兼容接口，运营人员无需填写接口地址。</p>
 
@@ -135,8 +184,11 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
             <input
               autoComplete="off"
               className="rounded-ui border border-line px-3 py-3 text-sm"
-              onChange={(event) => setApiKey(event.target.value)}
-              placeholder="仅用于本次测试，不会保存"
+              onChange={(event) => {
+                setApiKey(event.target.value);
+                setSaveResult(null);
+              }}
+              placeholder="仅用于本次服务端测试与保存，不会写入浏览器"
               required
               type="password"
               value={apiKey}
@@ -188,6 +240,40 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
                 <pre className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-ocean/75">{result.responsePreview}</pre>
               </div>
             ) : null}
+
+            {result.ok && provider === "minimax" ? (
+              <div className="mt-4 rounded-ui border border-line bg-white/75 p-4">
+                <p className="text-sm font-semibold text-ink">MiniMax 联通已通过</p>
+                <p className="mt-1 text-sm leading-6 text-ocean/70">
+                  保存并启用会写入 ADVISOR_AGENT_PROVIDER、MINIMAX_ADVISOR_MODEL、MINIMAX_API_KEY，并触发重新部署。
+                </p>
+                <button
+                  className="mt-3 rounded-ui bg-teal px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  disabled={!canSave}
+                  onClick={saveAndEnable}
+                  type="button"
+                >
+                  {isSaving ? "保存中 / 部署中..." : "保存并启用 MiniMax"}
+                </button>
+                {!envStatus.vercelAutomationConfigured ? (
+                  <p className="mt-2 text-xs leading-5 text-ocean/60">当前环境未配置自动保存能力，请联系技术人员配置 VERCEL_API_TOKEN/PROJECT_ID。</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {saveResult ? (
+          <div className={`mt-5 rounded-ui border p-4 text-sm ${saveResult.ok ? "border-teal bg-teal/10" : "border-red-200 bg-red-50"}`}>
+            <p className="font-semibold text-ink">{saveResult.ok ? "已提交部署" : "保存或部署失败"}</p>
+            <div className="mt-3 grid gap-2 text-ocean/75">
+              {saveResult.message ? <StatusRow label="Message" value={saveResult.message} /> : null}
+              {saveResult.errorMessage ? <StatusRow label="Error" value={saveResult.errorMessage} /> : null}
+              {saveResult.envUpdated?.length ? <StatusRow label="已更新" value={saveResult.envUpdated.join(" / ")} /> : null}
+              {saveResult.deploymentId ? <StatusRow label="Deployment ID" value={saveResult.deploymentId} /> : null}
+              {saveResult.deploymentUrl ? <StatusRow label="Deployment URL" value={saveResult.deploymentUrl} /> : null}
+            </div>
+            {saveResult.ok ? <p className="mt-3 text-sm leading-6 text-ocean/70">部署完成后，AI 顾问将使用 MiniMax。页面不会显示完整 API Key。</p> : null}
           </div>
         ) : null}
       </section>
@@ -213,4 +299,15 @@ function diagnosticLabel(stage: DiagnosticStage) {
   };
 
   return labels[stage];
+}
+
+function opsApiPath(path: string) {
+  if (typeof window === "undefined") return path;
+
+  const token = new URLSearchParams(window.location.search).get("token");
+
+  if (!token) return path;
+
+  const params = new URLSearchParams({ token });
+  return `${path}?${params.toString()}`;
 }

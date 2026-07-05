@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 describe("model settings customer-side safety", () => {
-  it("does not expose ops model settings entry or key names in customer entry files", () => {
+  it("does not expose ops model settings entry or management key names in customer entry files", () => {
     const customerFiles = [
       "app/page.tsx",
       "app/advisor/page.tsx",
@@ -13,21 +13,29 @@ describe("model settings customer-side safety", () => {
     for (const file of customerFiles) {
       const source = readFileSync(file, "utf8");
       expect(source).not.toContain("/ops/model-settings");
+      expect(source).not.toContain("/ops/model-settings/save");
       expect(source).not.toContain("OPENAI_API_KEY");
       expect(source).not.toContain("MINIMAX_API_KEY");
+      expect(source).not.toContain("VERCEL_API_TOKEN");
+      expect(source).not.toContain("VERCEL_PROJECT_ID");
     }
   });
 
-  it("keeps the ops model settings form minimal for operators", () => {
+  it("keeps the ops model settings form minimal and safe for operators", () => {
     const source = readFileSync("components/ops/ModelSettingsTester.tsx", "utf8");
     const constants = readFileSync("lib/agent/modelConnectionConstants.ts", "utf8");
 
     expect(source).not.toContain("Base URL");
     expect(source).not.toContain("setBaseUrl");
+    expect(source).not.toContain("localStorage");
+    expect(source).not.toContain("sessionStorage");
     expect(source).toContain('useState<Provider>("minimax")');
     expect(source).toContain("DEFAULT_MINIMAX_MODEL");
     expect(constants).toContain('DEFAULT_MINIMAX_MODEL = "MiniMax-M3"');
     expect(source).toContain("不要把 API Key 发给无关人员");
+    expect(source).toContain("自动保存能力");
+    expect(source).toContain("保存并启用 MiniMax");
+    expect(source).toContain("/ops/model-settings/save");
     expect(source).toContain("Response Preview");
     expect(source).toContain("Validation Issues");
     expect(source).toContain("Issues Count");

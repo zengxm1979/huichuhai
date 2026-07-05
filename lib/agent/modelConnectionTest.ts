@@ -11,6 +11,7 @@ import {
   DEFAULT_MODEL_TEST_MESSAGE,
   DEFAULT_OPENAI_CHAT_COMPLETIONS_URL,
 } from "@/lib/agent/modelConnectionConstants";
+import { getVercelAutomationStatus } from "@/lib/deployment/vercelEnv";
 
 const modelConnectionTestInputSchema = z.object({
   provider: z.enum(["openai", "minimax"]),
@@ -42,6 +43,7 @@ export function getModelSettingsEnvStatus(env: NodeJS.ProcessEnv = process.env) 
     openaiModelConfigured: Boolean(env.OPENAI_ADVISOR_MODEL?.trim()),
     minimaxKeyConfigured: Boolean(env.MINIMAX_API_KEY?.trim()),
     minimaxModelConfigured: Boolean(env.MINIMAX_ADVISOR_MODEL?.trim()),
+    vercelAutomationConfigured: getVercelAutomationStatus(env).configured,
   };
 }
 

@@ -274,3 +274,23 @@ project=huichuhai
 3. 重新生成 robots / sitemap 行为。
 4. 检查 MOCK 内容和正式联系方式。
 5. 决定 Production Branch 是否切回 `main` 或正式生产分支。
+## AI 模型一键启用所需配置
+
+`/ops/model-settings` 支持在 MiniMax 联通测试通过后，由服务端写入 Vercel 环境变量并触发重新部署。该能力默认关闭，只有审核站/生产环境中配置了 Vercel 管理变量后才可用。
+
+需要在 Vercel 环境变量中配置：
+
+```text
+VERCEL_API_TOKEN=
+VERCEL_PROJECT_ID=
+VERCEL_TEAM_ID=
+VERCEL_TARGET=production
+```
+
+说明：
+- `VERCEL_API_TOKEN` 和 `VERCEL_PROJECT_ID` 必填；团队项目需要 `VERCEL_TEAM_ID`。
+- `VERCEL_TARGET` 默认 `production`，当前审核站仍保持 noindex / robots Disallow，不改变收录策略。
+- 页面不会显示 Vercel token、MiniMax key 或 Authorization header。
+- 保存流程会先调用 MiniMax 联通测试；测试失败不会写入环境变量。
+- 测试通过后写入：`ADVISOR_AGENT_PROVIDER=minimax`、`MINIMAX_ADVISOR_MODEL`、`MINIMAX_API_KEY`，随后触发 Vercel redeploy。
+- 当前不要在文档、git 或客户交付文案中写入真实 API key、Vercel token 或内部 ops token。

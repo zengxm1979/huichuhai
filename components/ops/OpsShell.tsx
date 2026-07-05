@@ -7,6 +7,7 @@ const opsLinks = [
   { href: "/ops/content-candidates", label: "内容素材" },
   { href: "/ops/quote-requests", label: "当次询价单" },
   { href: "/ops/leads", label: "AI 线索" },
+  { href: "/ops/model-settings", label: "AI 模型" },
 ];
 
 export function OpsShell({ children, title }: { children: ReactNode; title: string }) {

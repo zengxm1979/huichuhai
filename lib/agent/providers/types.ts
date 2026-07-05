@@ -1,6 +1,6 @@
 import type { RealAdvisorAgentTurnRequest, RealAdvisorAgentTurnResult } from "@/lib/agent/realSchemas";
 
-export type AdvisorAgentProviderName = "openai" | "rules";
+export type AdvisorAgentProviderName = "openai" | "minimax" | "rules";
 
 export type AdvisorAgentProvider = {
   name: AdvisorAgentProviderName;

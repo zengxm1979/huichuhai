@@ -1,31 +1,75 @@
 import { parseRealAdvisorAgentTurnResult, realAdvisorAgentTurnResultJsonSchema } from "@/lib/agent/realSchemas";
 import type { RealAdvisorAgentTurnRequest, RealAdvisorAgentTurnResult } from "@/lib/agent/realSchemas";
-import type { AdvisorAgentProvider } from "@/lib/agent/providers/types";
+import type { AdvisorAgentProvider, AdvisorAgentProviderName } from "@/lib/agent/providers/types";
 
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 
-export function createOpenAIAdvisorProvider(): AdvisorAgentProvider {
+export type OpenAICompatibleAdvisorProviderConfig = {
+  providerName?: Extract<AdvisorAgentProviderName, "openai" | "minimax">;
+  apiKey?: string;
+  model?: string;
+  baseUrl?: string;
+};
+
+export class ModelProviderHttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly providerName: string,
+  ) {
+    super(`${providerName} provider returned ${status}`);
+  }
+}
+
+export function createOpenAIAdvisorProvider(config: OpenAICompatibleAdvisorProviderConfig = {}): AdvisorAgentProvider {
   return {
-    name: "openai",
+    name: config.providerName ?? "openai",
     async generateTurn(request) {
-      return generateOpenAITurn(request);
+      return generateOpenAICompatibleTurn(request, {
+        providerName: config.providerName ?? "openai",
+        apiKey: config.apiKey ?? process.env.OPENAI_API_KEY,
+        model: config.model ?? process.env.OPENAI_ADVISOR_MODEL,
+        baseUrl: config.baseUrl ?? OPENAI_CHAT_COMPLETIONS_URL,
+      });
     },
   };
 }
 
-async function generateOpenAITurn(request: RealAdvisorAgentTurnRequest): Promise<RealAdvisorAgentTurnResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_ADVISOR_MODEL;
+export function createMiniMaxAdvisorProvider(config: OpenAICompatibleAdvisorProviderConfig = {}): AdvisorAgentProvider {
+  return {
+    name: "minimax",
+    async generateTurn(request) {
+      return generateOpenAICompatibleTurn(request, {
+        providerName: "minimax",
+        apiKey: config.apiKey ?? process.env.MINIMAX_API_KEY,
+        model: config.model ?? process.env.MINIMAX_ADVISOR_MODEL,
+        baseUrl: config.baseUrl ?? process.env.MINIMAX_BASE_URL,
+      });
+    },
+  };
+}
+
+async function generateOpenAICompatibleTurn(
+  request: RealAdvisorAgentTurnRequest,
+  config: Required<Pick<OpenAICompatibleAdvisorProviderConfig, "providerName">> &
+    Pick<OpenAICompatibleAdvisorProviderConfig, "apiKey" | "model" | "baseUrl">,
+): Promise<RealAdvisorAgentTurnResult> {
+  const apiKey = config.apiKey?.trim();
+  const model = config.model?.trim();
+  const baseUrl = config.baseUrl?.trim();
 
   if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error(`${config.providerName} API key is not configured`);
   }
 
   if (!model) {
-    throw new Error("OPENAI_ADVISOR_MODEL is not configured");
+    throw new Error(`${config.providerName} model is not configured`);
   }
 
-  const response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+  if (!baseUrl) {
+    throw new Error(`${config.providerName} base URL is not configured`);
+  }
+
+  const response = await fetch(baseUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -60,7 +104,7 @@ async function generateOpenAITurn(request: RealAdvisorAgentTurnRequest): Promise
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI advisor provider failed: ${response.status}`);
+    throw new ModelProviderHttpError(response.status, config.providerName);
   }
 
   const data = (await response.json()) as {
@@ -69,7 +113,7 @@ async function generateOpenAITurn(request: RealAdvisorAgentTurnRequest): Promise
   const content = data.choices?.[0]?.message?.content;
 
   if (!content) {
-    throw new Error("OpenAI advisor provider returned empty content");
+    throw new Error(`${config.providerName} provider returned empty content`);
   }
 
   return parseRealAdvisorAgentTurnResult(JSON.parse(content));

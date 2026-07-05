@@ -559,3 +559,13 @@ Phase 2.1 的实现目标是建立真实模型 Agent route 与 eval 基座，而
 - 客户侧仍只接收 customer-safe payload；`opsOnlySummary`、`leadSignals`、真实性/意向/优先级/风险、供应商内部字段、底价、返点、内部备注都不得返回客户侧。
 
 上线时必须通过 eval 回归、客户字段隔离测试和构建验证。未配置真实模型 key 的审核站仍应可完整演示轻咨询、配置准备和 fallback 安全口径。
+
+## 13. Phase 2.1.1 模型联通测试页
+
+Phase 2.1.1 增加内部受保护页面 `/ops/model-settings`，只用于审核阶段临时测试模型接口联通，不是正式模型配置后台。
+
+- 页面只显示服务端环境变量是否已配置，不显示具体 key 或 model 值。
+- 运营可临时输入 provider、base URL、model、API key 和测试消息，服务端只在当次 POST 请求中使用该 key。
+- API key 不写入 localStorage、sessionStorage、URL、文档、日志或 git，本轮不做长期保存。
+- 正式启用真实模型仍以 Vercel / 部署环境变量为准。
+- OpenAI 和 MiniMax 均按 OpenAI-compatible Chat Completions + `json_schema` Structured Outputs 做联通测试；如果接口不支持结构化输出，应返回失败，不应偷偷当作成功。

@@ -40,9 +40,8 @@ function mockChatCompletion(content: unknown, status = 200) {
 function validTurn() {
   return {
     stage: "exploring",
-    replyToCustomer:
-      "新山适合做偏跨境商务、产业考察和投资交流的投资大会，建议先比较本地商务接待、跨境考察联动和闭门路演三种方向。",
-    followupQuestion: "你这次更偏投资交流、项目路演，还是客户接待？",
+    replyToCustomer: "新山适合做投资交流、跨境商务和产业考察联动。",
+    followupQuestion: "这次更偏投资交流、项目路演，还是客户接待？",
     extractedFacts: {
       city: "新山",
       region: "马来西亚",
@@ -90,7 +89,7 @@ describe("ops model settings test route", () => {
     expect(payload.ok).toBe(false);
   });
 
-  it("returns customer-safe success without echoing apiKey", async () => {
+  it("returns customer-safe OpenAI success without echoing apiKey", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion(validTurn())));
 
     const response = await POST(
@@ -110,6 +109,7 @@ describe("ops model settings test route", () => {
     expect(payload.provider).toBe("openai");
     expect(payload.model).toBe("test-model");
     expect(payload.stage).toBe("exploring");
+    expect(payload.diagnosticStage).toBe("passed");
     expect(payload.replyPreview).toContain("新山");
     expect(payload.replyPreview.length).toBeLessThanOrEqual(200);
     expect(json).not.toContain("sk-test-secret");
@@ -134,6 +134,7 @@ describe("ops model settings test route", () => {
 
     expect(payload.ok).toBe(true);
     expect(payload.provider).toBe("minimax");
+    expect(payload.diagnosticStage).toBe("passed");
     expect(body.response_format).toBeUndefined();
     expect(JSON.stringify(body)).toContain("只输出 JSON");
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
@@ -159,7 +160,7 @@ describe("ops model settings test route", () => {
   });
 
   it("parses MiniMax content after removing think tags", async () => {
-    const fetchMock = vi.fn(async () => mockChatCompletion(`<think>先思考，但不要返回给用户</think>\n${JSON.stringify(validTurn())}`));
+    const fetchMock = vi.fn(async () => mockChatCompletion(`<think>internal reasoning</think>\n${JSON.stringify(validTurn())}`));
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await POST(
@@ -175,11 +176,12 @@ describe("ops model settings test route", () => {
     expect(payload.ok).toBe(true);
     expect(payload.provider).toBe("minimax");
     expect(payload.stage).toBe("exploring");
+    expect(payload.diagnosticStage).toBe("passed");
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
   });
 
-  it("returns a redacted validation error when MiniMax returns natural language", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion("我可以帮你规划新山投资大会。")));
+  it("returns json_parse diagnostics when MiniMax returns natural language", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion("I can help plan a Johor Bahru investment conference.")));
 
     const response = await POST(
       createRequest({
@@ -194,12 +196,43 @@ describe("ops model settings test route", () => {
 
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(false);
-    expect(payload.errorMessage).toContain("结构化");
+    expect(payload.diagnosticStage).toBe("json_parse");
+    expect(payload.errorMessage).toBe("模型已返回，但不是可解析 JSON。请尝试更换模型或重新测试。");
+    expect(payload.errorMessage).not.toContain("json_schema");
+    expect(payload.responsePreview).toContain("Johor Bahru investment conference");
+    expect(payload.responsePreview.length).toBeLessThanOrEqual(300);
     expect(json).not.toContain("minimax-test-secret");
     expect(json).not.toContain("Authorization");
   });
 
-  it("returns a MiniMax-specific redacted error when the API rejects the request", async () => {
+  it("returns schema_validation diagnostics when MiniMax JSON misses required fields", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ stage: "exploring", replyToCustomer: "新山适合投资大会。" })));
+
+    const response = await POST(
+      createRequest({
+        provider: "minimax",
+        model: "MiniMax-M3",
+        apiKey: "minimax-test-secret",
+      }),
+    );
+
+    const payload = await response.json();
+    const json = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(false);
+    expect(payload.diagnosticStage).toBe("schema_validation");
+    expect(payload.errorMessage).toBe("模型已返回 JSON，但结构不符合会出海顾问 Agent 输出要求。");
+    expect(payload.errorMessage).not.toContain("json_schema");
+    expect(payload.responsePreview).toContain("replyToCustomer");
+    expect(payload.validationIssues.length).toBeGreaterThan(0);
+    expect(payload.validationIssues.length).toBeLessThanOrEqual(5);
+    expect(payload.validationIssues[0]).toMatch(/:/);
+    expect(json).not.toContain("minimax-test-secret");
+    expect(json).not.toContain("Authorization");
+  });
+
+  it("returns a MiniMax-specific redacted HTTP error when the API rejects the request", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ error: "bad key minimax-test-secret" }, 401)));
 
     const response = await POST(
@@ -215,13 +248,14 @@ describe("ops model settings test route", () => {
 
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(false);
+    expect(payload.diagnosticStage).toBe("http");
     expect(payload.errorMessage).toContain("模型接口返回 401");
     expect(payload.errorMessage).not.toContain("json_schema");
     expect(json).not.toContain("minimax-test-secret");
     expect(json).not.toContain("Authorization");
   });
 
-  it("returns a redacted structured-output error when provider rejects the request", async () => {
+  it("keeps OpenAI HTTP errors on the json_schema structured output path", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ error: "bad key sk-test-secret" }, 400)));
 
     const response = await POST(
@@ -237,6 +271,7 @@ describe("ops model settings test route", () => {
 
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(false);
+    expect(payload.diagnosticStage).toBe("http");
     expect(payload.errorMessage).toContain("模型接口返回 400");
     expect(payload.errorMessage).toContain("json_schema structured output");
     expect(json).not.toContain("sk-test-secret");

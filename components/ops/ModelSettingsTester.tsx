@@ -11,6 +11,7 @@ import {
 } from "@/lib/agent/modelConnectionConstants";
 
 type Provider = "openai" | "minimax";
+type DiagnosticStage = "http" | "json_parse" | "schema_validation" | "passed";
 
 type EnvStatus = {
   currentProvider: string;
@@ -27,6 +28,9 @@ type TestResult = {
   stage?: string;
   replyPreview?: string;
   fallbackUsed?: boolean;
+  diagnosticStage?: DiagnosticStage;
+  responsePreview?: string;
+  validationIssues?: string[];
   errorMessage?: string;
 };
 
@@ -71,6 +75,7 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
         provider,
         model,
         fallbackUsed: false,
+        diagnosticStage: "http",
         errorMessage: "联通测试请求失败，请检查网络或稍后重试。",
       });
     } finally {
@@ -155,10 +160,29 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
               <StatusRow label="Provider" value={result.provider} />
               <StatusRow label="Model" value={result.model} />
               <StatusRow label="Fallback" value={result.fallbackUsed ? "已使用" : "未使用"} />
+              {result.diagnosticStage ? <StatusRow label="Diagnostic" value={diagnosticLabel(result.diagnosticStage)} /> : null}
               {result.stage ? <StatusRow label="Stage" value={result.stage} /> : null}
               {result.replyPreview ? <StatusRow label="Reply Preview" value={result.replyPreview} /> : null}
               {result.errorMessage ? <StatusRow label="Error" value={result.errorMessage} /> : null}
             </div>
+
+            {result.responsePreview ? (
+              <div className="mt-4 rounded-ui border border-line bg-white/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ocean/50">Response Preview</p>
+                <pre className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-ocean/75">{result.responsePreview}</pre>
+              </div>
+            ) : null}
+
+            {result.validationIssues?.length ? (
+              <div className="mt-4 rounded-ui border border-line bg-white/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ocean/50">Validation Issues</p>
+                <ul className="mt-2 grid gap-1 text-xs leading-5 text-ocean/75">
+                  {result.validationIssues.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -173,4 +197,15 @@ function StatusRow({ label, value }: { label: string; value: string }) {
       <span className="text-right font-semibold text-ink">{value}</span>
     </div>
   );
+}
+
+function diagnosticLabel(stage: DiagnosticStage) {
+  const labels: Record<DiagnosticStage, string> = {
+    http: "HTTP/API 联通",
+    json_parse: "JSON 解析",
+    schema_validation: "结构校验",
+    passed: "结构校验通过",
+  };
+
+  return labels[stage];
 }

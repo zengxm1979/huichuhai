@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertCustomerSafePayload } from "@/components/advisor/customerVisibility";
-import { mapAgentTurnToCustomerPayload } from "@/lib/agent/customer-mappers";
-import { runAdvisorTurn } from "@/lib/agent/response-planner";
+import { runRealAdvisorTurn } from "@/lib/agent/realAdvisorOrchestrator";
+import { mapRealAgentTurnToCustomerPayload } from "@/lib/agent/realCustomerMapper";
 import type { AgentTurnRequest } from "@/lib/agent/schemas";
 
 export async function POST(request: Request) {
@@ -12,12 +12,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "message is required" }, { status: 400 });
   }
 
-  const turn = runAdvisorTurn({
+  const result = await runRealAdvisorTurn({
     message,
     currentFacts: body.currentFacts,
     entryPage: body.entryPage,
   });
-  const customerPayload = mapAgentTurnToCustomerPayload(turn);
+  const customerPayload = mapRealAgentTurnToCustomerPayload(result.turn);
   assertCustomerSafePayload(customerPayload);
 
   return NextResponse.json(customerPayload);

@@ -1,4 +1,4 @@
-export type AdvisorStage = "orientation" | "exploring" | "structuring" | "handoff_ready";
+export type AdvisorStage = "orientation" | "exploring" | "structuring" | "configuration_ready" | "handoff_ready";
 
 export type AdvisorAnswerStrategy =
   | "explain_first"

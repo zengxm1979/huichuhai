@@ -546,3 +546,15 @@ Phase 3 或以后再做：
 - 已确认 MOCK 内容不会进入正式知识库。
 - 已确认资源主档 public-safe 字段和内部字段边界。
 - 已确认 opsOnlySummary、leadSignals 永不返回客户侧。
+
+## 12. Phase 2.1 实现说明
+
+Phase 2.1 的实现目标是建立真实模型 Agent route 与 eval 基座，而不是一次性完成正式业务闭环。当前服务端应保留 `/api/advisor/chat` 作为前端兼容入口，内部通过 provider adapter 编排：
+
+- `ADVISOR_AGENT_PROVIDER=mock` 或未配置真实模型 key 时，使用稳定 rules fallback。
+- `ADVISOR_AGENT_PROVIDER=openai` 且部署环境提供 `OPENAI_API_KEY` 与 `OPENAI_ADVISOR_MODEL` 后，才启用真实模型 provider。
+- 真实模型 provider 调用失败、输出 schema 校验失败或运行时异常时，必须回落到 rules fallback，不中断客户咨询。
+- 本阶段不接正式 RAG / 知识库，不把 MOCK 内容注入真实知识，不生成正式报价，不触发真实 ops 通知。
+- 客户侧仍只接收 customer-safe payload；`opsOnlySummary`、`leadSignals`、真实性/意向/优先级/风险、供应商内部字段、底价、返点、内部备注都不得返回客户侧。
+
+上线时必须通过 eval 回归、客户字段隔离测试和构建验证。未配置真实模型 key 的审核站仍应可完整演示轻咨询、配置准备和 fallback 安全口径。

@@ -1,6 +1,10 @@
 import { z, ZodError } from "zod";
 import { createMiniMaxAdvisorProvider, createOpenAIAdvisorProvider, ModelProviderHttpError } from "@/lib/agent/providers/openaiProvider";
-import { DEFAULT_MODEL_TEST_MESSAGE, DEFAULT_OPENAI_CHAT_COMPLETIONS_URL } from "@/lib/agent/modelConnectionConstants";
+import {
+  DEFAULT_MINIMAX_CHAT_COMPLETIONS_URL,
+  DEFAULT_MODEL_TEST_MESSAGE,
+  DEFAULT_OPENAI_CHAT_COMPLETIONS_URL,
+} from "@/lib/agent/modelConnectionConstants";
 
 const modelConnectionTestInputSchema = z.object({
   provider: z.enum(["openai", "minimax"]),
@@ -26,7 +30,6 @@ export function getModelSettingsEnvStatus(env: NodeJS.ProcessEnv = process.env) 
     openaiKeyConfigured: Boolean(env.OPENAI_API_KEY?.trim()),
     openaiModelConfigured: Boolean(env.OPENAI_ADVISOR_MODEL?.trim()),
     minimaxKeyConfigured: Boolean(env.MINIMAX_API_KEY?.trim()),
-    minimaxBaseUrlConfigured: Boolean(env.MINIMAX_BASE_URL?.trim()),
     minimaxModelConfigured: Boolean(env.MINIMAX_ADVISOR_MODEL?.trim()),
   };
 }
@@ -51,12 +54,12 @@ export async function testAdvisorModelConnection(input: unknown): Promise<ModelC
       ? createOpenAIAdvisorProvider({
           apiKey: parsed.apiKey,
           model: parsed.model,
-          baseUrl: parsed.baseUrl || DEFAULT_OPENAI_CHAT_COMPLETIONS_URL,
+          baseUrl: normalizeChatCompletionsUrl(parsed.baseUrl || DEFAULT_OPENAI_CHAT_COMPLETIONS_URL),
         })
       : createMiniMaxAdvisorProvider({
           apiKey: parsed.apiKey,
           model: parsed.model,
-          baseUrl: parsed.baseUrl,
+          baseUrl: normalizeChatCompletionsUrl(parsed.baseUrl || process.env.MINIMAX_BASE_URL || DEFAULT_MINIMAX_CHAT_COMPLETIONS_URL),
         });
 
   try {
@@ -84,8 +87,18 @@ export async function testAdvisorModelConnection(input: unknown): Promise<ModelC
   }
 }
 
+export function normalizeChatCompletionsUrl(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+
+  if (trimmed.endsWith("/chat/completions")) {
+    return trimmed;
+  }
+
+  return `${trimmed}/chat/completions`;
+}
+
 function truncate(value: string, maxLength: number) {
-  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}...` : value;
 }
 
 function redactModelTestError(error: unknown) {
@@ -97,5 +110,5 @@ function redactModelTestError(error: unknown) {
     return "模型响应未通过结构化输出测试：该接口未通过 json_schema structured output 校验。";
   }
 
-  return "模型联通测试失败：请检查 Provider、Base URL、Model 和 API Key。";
+  return "模型联通测试失败：请检查 Provider、Model 和 API Key。";
 }

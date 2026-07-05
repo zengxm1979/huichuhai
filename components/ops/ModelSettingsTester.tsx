@@ -2,20 +2,27 @@
 
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { DEFAULT_MODEL_TEST_MESSAGE, DEFAULT_OPENAI_CHAT_COMPLETIONS_URL } from "@/lib/agent/modelConnectionConstants";
+import {
+  DEFAULT_MINIMAX_MODEL,
+  DEFAULT_MODEL_TEST_MESSAGE,
+  DEFAULT_OPENAI_MODEL,
+  MINIMAX_MODEL_OPTIONS,
+  OPENAI_MODEL_OPTIONS,
+} from "@/lib/agent/modelConnectionConstants";
+
+type Provider = "openai" | "minimax";
 
 type EnvStatus = {
   currentProvider: string;
   openaiKeyConfigured: boolean;
   openaiModelConfigured: boolean;
   minimaxKeyConfigured: boolean;
-  minimaxBaseUrlConfigured: boolean;
   minimaxModelConfigured: boolean;
 };
 
 type TestResult = {
   ok: boolean;
-  provider: "openai" | "minimax";
+  provider: Provider;
   model: string;
   stage?: string;
   replyPreview?: string;
@@ -24,23 +31,20 @@ type TestResult = {
 };
 
 export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
-  const [provider, setProvider] = useState<"openai" | "minimax">("openai");
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_OPENAI_CHAT_COMPLETIONS_URL);
-  const [model, setModel] = useState("");
+  const [provider, setProvider] = useState<Provider>("minimax");
+  const [model, setModel] = useState(DEFAULT_MINIMAX_MODEL);
   const [apiKey, setApiKey] = useState("");
   const [testMessage, setTestMessage] = useState(DEFAULT_MODEL_TEST_MESSAGE);
   const [result, setResult] = useState<TestResult | null>(null);
   const [isTesting, setIsTesting] = useState(false);
 
+  const modelOptions = provider === "minimax" ? MINIMAX_MODEL_OPTIONS : OPENAI_MODEL_OPTIONS;
   const canSubmit = useMemo(() => model.trim().length > 0 && apiKey.trim().length > 0 && !isTesting, [apiKey, isTesting, model]);
 
-  function updateProvider(nextProvider: "openai" | "minimax") {
+  function updateProvider(nextProvider: Provider) {
     setProvider(nextProvider);
-    if (nextProvider === "openai" && !baseUrl.trim()) {
-      setBaseUrl(DEFAULT_OPENAI_CHAT_COMPLETIONS_URL);
-    } else if (nextProvider === "minimax" && baseUrl === DEFAULT_OPENAI_CHAT_COMPLETIONS_URL) {
-      setBaseUrl("");
-    }
+    setModel(nextProvider === "minimax" ? DEFAULT_MINIMAX_MODEL : DEFAULT_OPENAI_MODEL);
+    setResult(null);
   }
 
   async function submitTest(event: FormEvent<HTMLFormElement>) {
@@ -54,7 +58,6 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          baseUrl: baseUrl.trim() || undefined,
           model,
           apiKey,
           testMessage,
@@ -86,7 +89,6 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
           <StatusRow label="OpenAI API Key" value={envStatus.openaiKeyConfigured ? "已配置" : "未配置"} />
           <StatusRow label="OpenAI Model" value={envStatus.openaiModelConfigured ? "已配置" : "未配置"} />
           <StatusRow label="MiniMax API Key" value={envStatus.minimaxKeyConfigured ? "已配置" : "未配置"} />
-          <StatusRow label="MiniMax Base URL" value={envStatus.minimaxBaseUrlConfigured ? "已配置" : "未配置"} />
           <StatusRow label="MiniMax Model" value={envStatus.minimaxModelConfigured ? "已配置" : "未配置"} />
         </div>
       </section>
@@ -95,41 +97,32 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold">Connection test</p>
         <h2 className="mt-2 text-xl font-semibold text-ink">临时输入配置并测试联通</h2>
         <p className="mt-2 text-sm leading-6 text-ocean/70">
-          本页输入的 API Key 只用于当次 POST 联通测试，不会保存到浏览器、数据库或代码。正式启用真实模型，请配置部署环境变量。
+          API Key 只用于本次服务端联通测试，不会保存；正式启用请配置部署环境变量。不要把 API Key 发给无关人员。
         </p>
+        <p className="mt-2 text-sm leading-6 text-ocean/70">默认使用 MiniMax 官方 OpenAI 兼容接口，运营人员无需填写接口地址。</p>
 
         <form className="mt-5 grid gap-4" onSubmit={submitTest}>
           <label className="grid gap-2 text-sm font-semibold text-ink">
             Provider
             <select
               className="rounded-ui border border-line px-3 py-3 text-sm"
-              onChange={(event) => updateProvider(event.target.value as "openai" | "minimax")}
+              onChange={(event) => updateProvider(event.target.value as Provider)}
               value={provider}
             >
-              <option value="openai">openai</option>
-              <option value="minimax">minimax</option>
+              <option value="minimax">MiniMax</option>
+              <option value="openai">OpenAI</option>
             </select>
           </label>
 
           <label className="grid gap-2 text-sm font-semibold text-ink">
-            Base URL
-            <input
-              className="rounded-ui border border-line px-3 py-3 text-sm"
-              onChange={(event) => setBaseUrl(event.target.value)}
-              placeholder={provider === "openai" ? DEFAULT_OPENAI_CHAT_COMPLETIONS_URL : "请输入兼容 chat/completions 的接口地址"}
-              value={baseUrl}
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-semibold text-ink">
             Model
-            <input
-              className="rounded-ui border border-line px-3 py-3 text-sm"
-              onChange={(event) => setModel(event.target.value)}
-              placeholder="例如：部署环境中确认可用的模型名"
-              required
-              value={model}
-            />
+            <select className="rounded-ui border border-line px-3 py-3 text-sm" onChange={(event) => setModel(event.target.value)} required value={model}>
+              {modelOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="grid gap-2 text-sm font-semibold text-ink">
@@ -147,11 +140,7 @@ export function ModelSettingsTester({ envStatus }: { envStatus: EnvStatus }) {
 
           <label className="grid gap-2 text-sm font-semibold text-ink">
             Test message
-            <textarea
-              className="min-h-24 rounded-ui border border-line px-3 py-3 text-sm"
-              onChange={(event) => setTestMessage(event.target.value)}
-              value={testMessage}
-            />
+            <textarea className="min-h-24 rounded-ui border border-line px-3 py-3 text-sm" onChange={(event) => setTestMessage(event.target.value)} value={testMessage} />
           </label>
 
           <button className="rounded-ui bg-ink px-4 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={!canSubmit} type="submit">

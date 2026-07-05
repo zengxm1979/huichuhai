@@ -138,6 +138,25 @@ describe("ops model settings test route", () => {
     expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
   });
 
+  it("uses the default MiniMax chat completions endpoint when baseUrl is omitted", async () => {
+    const fetchMock = vi.fn(async () => mockChatCompletion(validTurn()));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      createRequest({
+        provider: "minimax",
+        model: "MiniMax-M3",
+        apiKey: "minimax-test-secret",
+      }),
+    );
+
+    const payload = await response.json();
+
+    expect(payload.ok).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe("https://api.minimaxi.com/v1/chat/completions");
+    expect(JSON.stringify(payload)).not.toContain("minimax-test-secret");
+  });
+
   it("returns a redacted structured-output error when provider rejects the request", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockChatCompletion({ error: "bad key sk-test-secret" }, 400)));
 

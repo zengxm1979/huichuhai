@@ -565,7 +565,10 @@ Phase 2.1 的实现目标是建立真实模型 Agent route 与 eval 基座，而
 Phase 2.1.1 增加内部受保护页面 `/ops/model-settings`，只用于审核阶段临时测试模型接口联通，不是正式模型配置后台。
 
 - 页面只显示服务端环境变量是否已配置，不显示具体 key 或 model 值。
-- 运营可临时输入 provider、base URL、model、API key 和测试消息，服务端只在当次 POST 请求中使用该 key。
+- 运营可临时输入 provider、model、API key 和测试消息，服务端只在当次 POST 请求中使用该 key。
+- 页面默认选择 MiniMax，默认模型为 `MiniMax-M3`；OpenAI 保留为可切换 provider。
+- 页面不向运营暴露 Base URL 字段。MiniMax 默认使用官方 OpenAI 兼容接口，服务端按当前直接 fetch 实现调用 `https://api.minimaxi.com/v1/chat/completions`；OpenAI 默认调用 `https://api.openai.com/v1/chat/completions`。
+- `MINIMAX_BASE_URL` 可继续作为部署环境中的技术覆盖项，但不作为普通运营用户需要理解或填写的表单项。
 - API key 不写入 localStorage、sessionStorage、URL、文档、日志或 git，本轮不做长期保存。
 - 正式启用真实模型仍以 Vercel / 部署环境变量为准。
 - OpenAI 和 MiniMax 均按 OpenAI-compatible Chat Completions + `json_schema` Structured Outputs 做联通测试；如果接口不支持结构化输出，应返回失败，不应偷偷当作成功。

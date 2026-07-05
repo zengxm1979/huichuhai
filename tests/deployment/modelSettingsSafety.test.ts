@@ -17,4 +17,16 @@ describe("model settings customer-side safety", () => {
       expect(source).not.toContain("MINIMAX_API_KEY");
     }
   });
+
+  it("keeps the ops model settings form minimal for operators", () => {
+    const source = readFileSync("components/ops/ModelSettingsTester.tsx", "utf8");
+    const constants = readFileSync("lib/agent/modelConnectionConstants.ts", "utf8");
+
+    expect(source).not.toContain("Base URL");
+    expect(source).not.toContain("setBaseUrl");
+    expect(source).toContain('useState<Provider>("minimax")');
+    expect(source).toContain("DEFAULT_MINIMAX_MODEL");
+    expect(constants).toContain('DEFAULT_MINIMAX_MODEL = "MiniMax-M3"');
+    expect(source).toContain("不要把 API Key 发给无关人员");
+  });
 });
